@@ -1,0 +1,167 @@
+.sidebar {
+  width: 240px;
+  background-color: white;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.heart-icon {
+  font-size: 24px;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  text-decoration: none;
+  color: #666;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-item.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.icon {
+  font-size: 20px;
+}
+
+/* Beds Management Styles */
+.beds-management {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.beds-management h2 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.total-beds {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.bed-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bed-stat span {
+  font-size: 12px;
+  color: #666;
+}
+
+.bed-stat strong {
+  font-size: 18px;
+  color: #333;
+  margin-top: 4px;
+}
+
+.departments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.department-item {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.dept-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dept-header h3 {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}
+
+.availability {
+  font-size: 12px;
+  color: #666;
+}
+
+.dept-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bed-btn {
+  flex: 1;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bed-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bed-btn.occupy {
+  background: #ef5350;
+  color: white;
+}
+
+.bed-btn.release {
+  background: #66bb6a;
+  color: white;
+}
+
+.bed-btn.occupy:hover:not(:disabled) {
+  background: #e53935;
+}
+
+.bed-btn.release:hover:not(:disabled) {
+  background: #43a047;
+}

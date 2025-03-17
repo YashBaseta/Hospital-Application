@@ -9,6 +9,7 @@ import Facilities from './components/Facilities';
 import BedManagement from './components/BedManagement';
 import Supplies from './components/Supplies';
 import './App.css';
+import Billing from './components/billing';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/facilities" element={<Facilities />} />
           <Route path="/beds" element={<BedManagement />} />
           <Route path="/supplies" element={<Supplies />} />
+          <Route path="/billing" element={<Billing />} />
         </Routes>
       </main>
     </div>

@@ -41,6 +41,10 @@ function Sidebar() {
           <span className="icon">📦</span>
           Supplies
         </NavLink>
+        <NavLink to="/billing" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <span className="icon">💰</span>
+          Billing
+        </NavLink>
       </nav>
     </div>
   );

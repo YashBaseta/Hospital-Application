@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import axios from "axios"
 import '../styles/CRUD.css';
 
@@ -45,9 +46,14 @@ function Appointments() {
         setEditId(null);
       } else {
         // Add new appointment
-        const res = await axios.post('http://localhost:5000/appointments', formData);
-        setAppointments([...appointments, res.data]);
-      }
+        try {
+          const res = await axios.post('http://localhost:5000/appointments', formData);
+          toast.success(res.data.msg); // Now alert will show the correct message
+  
+          setAppointments([...appointments, res.data.appointment]); // Update state with new appointment
+      } catch (error) {
+          toast.error(error.response?.data?.msg || "Error adding appointment"); // Show error message if booking fails
+      }}
 
       setFormData({
         patient_name: '',
@@ -83,7 +89,43 @@ function Appointments() {
     }
   };
 
- 
+
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      // Send update request to backend
+      await axios.put(`http://localhost:5000/appointments/${id}`, { status: newStatus });
+  
+      // Update state in frontend
+      setAppointments(prevAppointments =>
+        prevAppointments.map(appt =>
+          appt._id === id ? { ...appt, status: newStatus } : appt
+        )
+      );
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+  
+const handlePriority = async (id,newPriority) => {
+  try {
+    await axios.put(`http://localhost:5000/appointments/${id}` ,{priority: newPriority})
+    setAppointments(prevAppointments =>
+      prevAppointments.map(appt =>
+        appt._id === id ? { ...appt, priority: newPriority } : appt
+      )
+    );
+  } catch (error) {
+    console.error('Error updating status:', error);
+  }
+}
+
+
+
+
+
+
+
   const filteredAppointments = appointments.filter(appointment => {
     if (filter === 'all') return true;
     if (filter === 'today') {
@@ -105,9 +147,31 @@ function Appointments() {
     'Surgery Consultation'
   ];
 
+  const appointmentTime = [
+    '10:00',
+    '10:30',
+    '11:00',
+    '11:30',
+    '12:00',
+    '12:30',
+    '1:00',
+    '1:30',
+    '2:00',
+    '2:30',
+    '3:00',
+    '3:30',
+    '4:00',
+    '4:30',
+    '5:00',
+    '5:30',
+    '6:00',
+
+  ]
+
   return (
     <div className="crud-container">
       <h1>Appointments Management</h1>
+      
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -144,13 +208,27 @@ function Appointments() {
         </div>
         <div className="form-group">
           <label>Time</label>
-          <input
-            type="time"
-            name="time"
-            value={formData.time}
-            onChange={handleInputChange}
-            required
-          />
+         <select
+    name="time"
+    value={formData.time}
+    onChange={handleInputChange}
+    required
+>
+    <option value="">Select Time</option>
+    {appointmentTime.map(time => {
+        // Check if the selected doctor already has an appointment at this time
+        const isBooked = appointments.some(appt => appt.time === time && appt.doctor === formData.doctor && appt.date === formData.date);
+        
+        return (
+            <option key={time} value={time} disabled={isBooked} className={isBooked ? "booked" : ""}>
+                {time} {isBooked ? "(Booked)" : ""}
+            </option>
+        );
+    })}
+</select>
+
+
+          
         </div>
         <div className="form-group">
           <label>Type</label>
@@ -174,10 +252,9 @@ function Appointments() {
             onChange={handleInputChange}
             required
           >
-            <option value="15">15</option>
+           
             <option value="30">30</option>
-            <option value="45">45</option>
-            <option value="60">60</option>
+            
           </select>
         </div>
         <div className="form-group">
@@ -217,7 +294,7 @@ function Appointments() {
           <option value="Scheduled">Scheduled</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
-          <option value="No-show">No-show</option>
+          
         </select>
       </div>
 
@@ -247,15 +324,24 @@ function Appointments() {
                 <td>{appointment.type}</td>
                 <td>{appointment.duration} min</td>
                 <td>
-                  <span className={`priority-badge ${appointment.priority.toLowerCase()}`}>
-                    {appointment.priority}
-                  </span>
+                  <select value={appointment.priority} onChange={(e) =>handlePriority(appointment._id, e.target.value)} className={`priority-badge ${appointment.priority.toLowerCase()}`}>
+                  <option value="Normal">Normal</option>
+    <option value="Low">Low</option>
+    <option value="High">High</option>
+    <option value="Urgent">Urgent</option>
+                  </select>
                 </td>
                 <td>
-                  <span className={`status-select ${appointment.status.toLowerCase()}`}
-                  >{appointment.status}
-                   
-                  </span>
+                <select
+    value={appointment.status}
+    onChange={(e) => handleStatusChange(appointment._id, e.target.value)}
+    className={`status-select ${appointment.status.toLowerCase()}`}
+  >
+    <option value="Scheduled">Scheduled</option>
+    <option value="Completed">Completed</option>
+    <option value="Cancelled">Cancelled</option>
+    
+  </select>
                 </td>
                 <td>
                   {appointment.notes && (

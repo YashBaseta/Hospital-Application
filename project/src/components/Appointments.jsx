@@ -11,11 +11,12 @@ function Appointments() {
     time: '',
     type: '',
     status: 'Scheduled',
-    notes: '',
+    phone: '',
     duration: '30',
     priority: 'Normal'
   });
   const [appointments, setAppointments] = useState([]);
+    const [staffMembers, setStaffMembers] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [filter, setFilter] = useState('all');
@@ -26,6 +27,24 @@ function Appointments() {
       .then(res => setAppointments(res.data))
       .catch(err => console.error(err));
   }, []);
+
+// Fetch Doctor
+useEffect(() => {
+  fetchStaff();
+}, []);
+
+const fetchStaff = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/staff');
+    const doctorList= response.data.filter(staff => staff.role.toLowerCase() === "doctor" )
+    setStaffMembers(doctorList);
+  } catch (error) {
+    console.error('Error fetching Staff:', error);
+  }
+};
+
+
+
 
   const handleInputChange = (e) => {
     setFormData({
@@ -62,7 +81,7 @@ function Appointments() {
         time: '',
         type: '',
         status: 'Scheduled',
-        notes: '',
+        phone: '',
         duration: '30',
         priority: 'Normal'
       });
@@ -186,15 +205,22 @@ const handlePriority = async (id,newPriority) => {
           />
         </div>
         <div className="form-group">
+
           <label>Doctor</label>
-          <input
-            type="text"
-            name="doctor"
-            value={formData.doctor}
-            onChange={handleInputChange}
-            placeholder="Doctor"
-            required
-          />
+          <select
+                name="doctor"
+                value={formData.doctor}
+                onChange={handleInputChange}
+                required
+                className="select-box"
+            >
+                <option value="">Select a Doctor</option>
+                {staffMembers.map((staff) => (
+                    <option key={staff} value={staff.name}>
+                        {staff.name}
+                    </option>
+                ))}
+            </select>
         </div>
         <div className="form-group">
           <label>Date</label>
@@ -208,24 +234,26 @@ const handlePriority = async (id,newPriority) => {
         </div>
         <div className="form-group">
           <label>Time</label>
-         <select
-    name="time"
-    value={formData.time}
-    onChange={handleInputChange}
-    required
->
-    <option value="">Select Time</option>
-    {appointmentTime.map(time => {
-        // Check if the selected doctor already has an appointment at this time
-        const isBooked = appointments.some(appt => appt.time === time && appt.doctor === formData.doctor && appt.date === formData.date);
-        
-        return (
-            <option key={time} value={time} disabled={isBooked} className={isBooked ? "booked" : ""}>
-                {time} {isBooked ? "(Booked)" : ""}
-            </option>
-        );
-    })}
-</select>
+          <select
+                name="time"
+                value={formData.time}
+                onChange={handleInputChange}
+                required
+                className="select-box"
+            >
+                <option value="">Select Time</option>
+                {appointmentTime.map(time => {
+                    const isBooked = appointments.some(
+                        appt => appt.time === time && appt.doctor === formData.doctor && appt.date === formData.date
+                    );
+
+                    return (
+                        <option key={time} value={time} disabled={isBooked} className={isBooked ? "booked" : ""}>
+                            {time} {isBooked ? "(Booked)" : ""}
+                        </option>
+                    );
+                })}
+            </select>
 
 
           
@@ -271,14 +299,14 @@ const handlePriority = async (id,newPriority) => {
             <option value="Urgent">Urgent</option>
           </select>
         </div>
-        <div className="form-group">
-          <label>Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
+        <div className="form-group">  
+          <label>Contact Number</label>
+          <input
+            name="phone"
+            value={formData.phone}
             onChange={handleInputChange}
-            placeholder="Additional notes"
-            rows="3"
+            placeholder="Phone"
+            
           />
         </div>
         <button type="submit" className="btn-submit">
@@ -310,7 +338,7 @@ const handlePriority = async (id,newPriority) => {
               <th>Duration</th>
               <th>Priority</th>
               <th>Status</th>
-              <th>Notes</th>
+              <th>phone</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -344,10 +372,9 @@ const handlePriority = async (id,newPriority) => {
   </select>
                 </td>
                 <td>
-                  {appointment.notes && (
-                    <div className="notes-tooltip">
-                      📝
-                      <span className="tooltip-text">{appointment.notes}</span>
+                  {appointment.phone && (
+                    <div className="phone-tooltip">
+                      <span className="tooltip-text">{appointment.phone}</span>
                     </div>
                   )}
                 </td>

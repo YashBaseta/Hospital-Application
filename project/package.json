@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
+    "antd": "^5.24.4",
     "axios": "^1.7.9",
     "date-fns": "^3.3.1",
     "lucide": "^0.476.0",

@@ -407,50 +407,46 @@ tr:hover {
 }
 
 
+/* Dropdown Container */
+.dropdown-container {
+  position: relative;
+  width: 100%;
+}
 
-/* Style the dropdown */
-select {
+/* Select Box */
+.select-box {
   width: 100%;
   padding: 10px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  color: #333;
   background-color: #fff;
-  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   outline: none;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease-in-out;
 }
 
-/* Style dropdown when focused */
-select:focus {
+.select-box:focus {
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-/* Normal options */
-option {
-  padding: 10px;
+/* Option Styling */
+.select-box option {
   font-size: 14px;
-  background-color: #fff;
-  color: #333;
+  padding: 5px;
 }
 
-/* Style for booked options */
-option.booked {
-  color: #ff0000 !important;
-  font-weight: bold;
-  background-color: #ffe6e6 !important; /* Light red background */
-}
-
-/* Improve hover effect inside dropdown */
-select option:hover {
-  background-color: #f1f1f1;
-}
-
-/* Ensure the disabled options still look different */
-option:disabled {
-  color: #b30000;
-  font-weight: bold;
-  background-color: #ffe6e6;
+/* Booked Option */
+.booked {
+  color: #999;
+  background-color: #f8f8f8;
   cursor: not-allowed;
+}
+
+/* No Slots Message */
+.no-slots {
+  margin-top: 8px;
+  font-size: 14px;
+  color: red;
 }

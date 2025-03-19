@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios"
-
-
 import toast from 'react-hot-toast';
 import '../styles/CRUD.css';
+import { Button } from 'antd';
 
 function Patients() {
  
@@ -25,6 +24,7 @@ function Patients() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCriteria, setFilterCriteria] = useState('all');
@@ -104,7 +104,14 @@ function Patients() {
 
   return (
     <div className="crud-container">
-      <h1>Patients Management</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <h1>Patients Management</h1>
+      <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Patient'}
+      </Button>
+    </div>
+
+      {showForm && (
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -250,7 +257,7 @@ function Patients() {
           {isEditing ? 'Update Patient' : 'Add Patient'}
         </button>
       </form>
-
+      )}
       <div className="search-filter-section">
         <div className="search-box">
           <input

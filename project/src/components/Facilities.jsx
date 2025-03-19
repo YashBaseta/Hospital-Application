@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import  { Button } from 'antd';
 import axios from 'axios';
 
 import '../styles/CRUD.css';
@@ -15,6 +16,7 @@ function Facilities() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ function Facilities() {
   }}
 
   const handleEdit = (facility) => {
+    setShowForm(!showForm)
     setIsEditing(true);
     setEditId(facility._id);
     setFormData(facility);
@@ -79,8 +82,16 @@ function Facilities() {
   };
 
   return (
+    
     <div className="crud-container">
-      <h1>Facilities Management</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <h1>Facilities Management</h1>
+      <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Bed'}
+      </Button>
+    </div>
+
+      {showForm && (
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -140,7 +151,7 @@ function Facilities() {
           {isEditing ? 'Update Facility' : 'Add Facility'}
         </button>
       </form>
-
+      )}
       <div className="table-container">
         <table>
           <thead>

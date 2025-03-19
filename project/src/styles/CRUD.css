@@ -148,8 +148,8 @@ table {
 }
 
 th, td {
-  padding: 16px;
-  text-align: left;
+  padding: 14px;
+  text-align: center;
   border-bottom: 1px solid #e2e8f0;
 }
 

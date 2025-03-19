@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/CRUD.css';
+import { Button } from 'antd';
 
 
 function BedManagement() {
@@ -15,6 +16,7 @@ function BedManagement() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [showForm,setShowForm]=useState(false)
 
   // ** Fetch beds from the backend **
   useEffect(() => {
@@ -63,6 +65,7 @@ function BedManagement() {
   };
 
   const handleEdit = (bed) => {
+    setShowForm(!showForm)
     setIsEditing(true);
     setEditId(bed._id);
     setFormData(bed);
@@ -79,7 +82,14 @@ function BedManagement() {
 
   return (
     <div className="crud-container">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <h1>Bed Management</h1>
+      <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Bed'}
+      </Button>
+    </div>
+
+      {showForm && (
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -132,7 +142,7 @@ function BedManagement() {
           {isEditing ? 'Update Bed' : 'Add Bed'}
         </button>
       </form>
-
+      )}
       <div className="table-container">
         <table>
           <thead>

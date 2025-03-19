@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/CRUD.css';
 import axios from 'axios';
-
+import { Button } from 'antd';
 function Staff() {
   const [staffMembers, setStaffMembers] = useState([]);
 
@@ -14,6 +14,7 @@ function Staff() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
 
 
@@ -65,6 +66,7 @@ try{
 }
 
   const handleEdit = (staff) => {
+    setShowForm(!showForm)
     setIsEditing(true);
     setEditId(staff._id);
     setFormData(staff);
@@ -81,7 +83,15 @@ try{
 
   return (
     <div className="crud-container">
-      <h1>Staff Management</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <h1>Staff Management</h1>
+    
+      <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Staff'}
+      </Button>
+    </div>
+
+      {showForm && (
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -142,7 +152,7 @@ try{
           {isEditing ? 'Update Staff' : 'Add Staff'}
         </button>
       </form>
-
+      )}
       <div className="table-container">
         <table>
           <thead>

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { format, isAfter } from 'date-fns';
 import toast from 'react-hot-toast';
 import '../styles/Billing.css';
+import {Button} from "antd"
 
 function Billing() {
   const [bills, setBills] = useState([]);
   const [selectedBill, setSelectedBill] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -216,7 +218,105 @@ function Billing() {
 
       <div className="billing-grid">
         <div className="bill-section">
-          <h2>Bills List</h2>
+
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>Bills List</h2>
+      
+      <Button style={{ height: "20px",marginTop:"1px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Bill'}
+      </Button>
+    </div>
+
+      {showForm && (
+         <form onSubmit={handleBillSubmit} className="form-grid">
+         <div className="form-group">
+           <label>Patient</label>
+           <select
+             value={billForm.patient_id}
+             onChange={(e) => setBillForm({ ...billForm, patient_id: e.target.value })}
+             required
+           >
+             <option value="">Select Patient</option>
+             {patients.map(patient => (
+               <option key={patient.id} value={patient.id}>{patient.name}</option>
+             ))}
+           </select>
+         </div>
+         <div className="form-group">
+           <label>Due Date</label>
+           <input
+             type="date"
+             value={billForm.due_date}
+             onChange={(e) => setBillForm({ ...billForm, due_date: e.target.value })}
+             required
+           />
+         </div>
+         <div className="form-group">
+           <label>Insurance Provider</label>
+           <input
+             type="text"
+             value={billForm.insurance_provider}
+             onChange={(e) => setBillForm({ ...billForm, insurance_provider: e.target.value })}
+             placeholder="Insurance Provider"
+           />
+         </div>
+         <div className="form-group">
+           <label>Policy Number</label>
+           <input
+             type="text"
+             value={billForm.insurance_policy_number}
+             onChange={(e) => setBillForm({ ...billForm, insurance_policy_number: e.target.value })}
+             placeholder="Policy Number"
+           />
+         </div>
+         <div className="form-group">
+           <label>Coverage Amount</label>
+           <input
+             type="number"
+             value={billForm.insurance_coverage_amount}
+             onChange={(e) => setBillForm({ ...billForm, insurance_coverage_amount: e.target.value })}
+             placeholder="Coverage Amount"
+             step="0.01"
+           />
+         </div>
+         <div className="form-group">
+           <label>Payment Method</label>
+           <select
+             value={billForm.payment_method}
+             onChange={(e) => setBillForm({ ...billForm, payment_method: e.target.value })}
+             required
+           >
+             <option value="">Select Payment Method</option>
+             <option value="Cash">Cash</option>
+             <option value="Credit Card">Credit Card</option>
+             <option value="Insurance">Insurance</option>
+             <option value="Bank Transfer">Bank Transfer</option>
+           </select>
+         </div>
+         <div className="form-group">
+           <label>Notes</label>
+           <textarea
+             value={billForm.notes}
+             onChange={(e) => setBillForm({ ...billForm, notes: e.target.value })}
+             placeholder="Additional Notes"
+           />
+         </div>
+         <button type="submit" className="btn-submit btn-primary">Create Bill</button>
+       </form>)}
+
+
+
+
+
+
+
+
+
+
+
+
+
           <div className="table-container">
             <table className="bill-table">
               <thead>
@@ -268,7 +368,7 @@ function Billing() {
           </div>
         </div>
 
-        <div className="bill-section">
+        {/* <div className="bill-section">
           <h2>Create New Bill</h2>
           <form onSubmit={handleBillSubmit} className="form-grid">
             <div className="form-group">
@@ -345,7 +445,7 @@ function Billing() {
             </div>
             <button type="submit" className="btn btn-primary">Create Bill</button>
           </form>
-        </div>
+        </div> */}
       </div>
 
       {showPaymentModal && selectedBillForPayment && (

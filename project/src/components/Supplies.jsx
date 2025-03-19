@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/CRUD.css';
 import axios from 'axios';
+import { Button } from 'antd';
 
 function Supplies() {
   const [supplies, setSupplies] = useState([]);
@@ -14,6 +15,7 @@ function Supplies() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
 
 
@@ -65,6 +67,7 @@ const fetchSupplies = async () => {
 }
 
   const handleEdit = (supply) => {
+    setShowForm(!showForm)
     setIsEditing(true);
     setEditId(supply._id);
     setFormData(supply);
@@ -80,8 +83,16 @@ const fetchSupplies = async () => {
   };
 
   return (
-    <div className="crud-container">
-      <h1>Supplies Management</h1>
+      <div className="crud-container">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    
+    <h1>Supplies Management</h1>
+      <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
+        {showForm ? 'Close Form' : 'Add Supplies'}
+      </Button>
+    </div>
+
+      {showForm && (
       
       <form onSubmit={handleSubmit} className="crud-form">
         <div className="form-group">
@@ -138,7 +149,7 @@ const fetchSupplies = async () => {
           {isEditing ? 'Update Supply' : 'Add Supply'}
         </button>
       </form>
-
+      )}
       <div className="table-container">
         <table>
           <thead>

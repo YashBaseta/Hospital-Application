@@ -3,6 +3,7 @@ import axios from "axios"
 import toast from 'react-hot-toast';
 import '../styles/CRUD.css';
 import { Button } from 'antd';
+import Sidebar from './Sidebar';
 
 function Patients() {
  
@@ -70,6 +71,7 @@ function Patients() {
   };
 
   const handleEdit = (patient) => {
+    setShowForm(!showForm)
     setIsEditing(true);
     setEditId(patient._id);
     setFormData(patient);
@@ -103,6 +105,7 @@ function Patients() {
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   return (
+    
     <div className="crud-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <h1>Patients Management</h1>
@@ -324,6 +327,7 @@ function Patients() {
         </table>
       </div>
     </div>
+    
   );
 }
 

@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import axios from "axios"
 import '../styles/CRUD.css';
 import { Button, Flex } from 'antd';
+import Sidebar from './Sidebar';
 
 function Appointments() {
   const [formData, setFormData] = useState({
@@ -191,6 +192,7 @@ function Appointments() {
   ]
 
   return (
+
     <div className="crud-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <h1>Appointments Management</h1>
@@ -397,6 +399,7 @@ function Appointments() {
         </table>
       </div>
     </div>
+    
   );
 }
 

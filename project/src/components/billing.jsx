@@ -3,6 +3,8 @@ import { format, isAfter } from 'date-fns';
 import toast from 'react-hot-toast';
 import '../styles/Billing.css';
 import {Button} from "antd"
+import Sidebar from './Sidebar';
+
 
 function Billing() {
   const [bills, setBills] = useState([]);
@@ -172,6 +174,7 @@ function Billing() {
   ];
 
   return (
+    
     <div className="billing-container">
       <div className="billing-header">
         <h1>Billing Management</h1>
@@ -304,19 +307,6 @@ function Billing() {
          </div>
          <button type="submit" className="btn-submit btn-primary">Create Bill</button>
        </form>)}
-
-
-
-
-
-
-
-
-
-
-
-
-
           <div className="table-container">
             <table className="bill-table">
               <thead>
@@ -367,85 +357,6 @@ function Billing() {
             </table>
           </div>
         </div>
-
-        {/* <div className="bill-section">
-          <h2>Create New Bill</h2>
-          <form onSubmit={handleBillSubmit} className="form-grid">
-            <div className="form-group">
-              <label>Patient</label>
-              <select
-                value={billForm.patient_id}
-                onChange={(e) => setBillForm({ ...billForm, patient_id: e.target.value })}
-                required
-              >
-                <option value="">Select Patient</option>
-                {patients.map(patient => (
-                  <option key={patient.id} value={patient.id}>{patient.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Due Date</label>
-              <input
-                type="date"
-                value={billForm.due_date}
-                onChange={(e) => setBillForm({ ...billForm, due_date: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Insurance Provider</label>
-              <input
-                type="text"
-                value={billForm.insurance_provider}
-                onChange={(e) => setBillForm({ ...billForm, insurance_provider: e.target.value })}
-                placeholder="Insurance Provider"
-              />
-            </div>
-            <div className="form-group">
-              <label>Policy Number</label>
-              <input
-                type="text"
-                value={billForm.insurance_policy_number}
-                onChange={(e) => setBillForm({ ...billForm, insurance_policy_number: e.target.value })}
-                placeholder="Policy Number"
-              />
-            </div>
-            <div className="form-group">
-              <label>Coverage Amount</label>
-              <input
-                type="number"
-                value={billForm.insurance_coverage_amount}
-                onChange={(e) => setBillForm({ ...billForm, insurance_coverage_amount: e.target.value })}
-                placeholder="Coverage Amount"
-                step="0.01"
-              />
-            </div>
-            <div className="form-group">
-              <label>Payment Method</label>
-              <select
-                value={billForm.payment_method}
-                onChange={(e) => setBillForm({ ...billForm, payment_method: e.target.value })}
-                required
-              >
-                <option value="">Select Payment Method</option>
-                <option value="Cash">Cash</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Insurance">Insurance</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Notes</label>
-              <textarea
-                value={billForm.notes}
-                onChange={(e) => setBillForm({ ...billForm, notes: e.target.value })}
-                placeholder="Additional Notes"
-              />
-            </div>
-            <button type="submit" className="btn btn-primary">Create Bill</button>
-          </form>
-        </div> */}
       </div>
 
       {showPaymentModal && selectedBillForPayment && (
@@ -513,6 +424,7 @@ function Billing() {
         </div>
       )}
     </div>
+    
   );
 }
 

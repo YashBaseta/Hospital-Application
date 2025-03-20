@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/CRUD.css';
 import axios from 'axios';
 import { Button } from 'antd';
+import Sidebar from './Sidebar';
 
 function Supplies() {
   const [supplies, setSupplies] = useState([]);
@@ -83,6 +84,8 @@ const fetchSupplies = async () => {
   };
 
   return (
+  
+    
       <div className="crud-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     
@@ -180,6 +183,7 @@ const fetchSupplies = async () => {
         </table>
       </div>
     </div>
+    
   );
 }
 

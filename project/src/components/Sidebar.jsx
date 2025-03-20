@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
-import { Hospital } from "lucide-react";
+import { Hospital, LayoutDashboard } from "lucide-react";
 
 function Sidebar() {
   return (
@@ -9,12 +9,12 @@ function Sidebar() {
       <div className="logo">
 <Hospital size={32} strokeWidth={1.25} absoluteStrokeWidth />
       
-        {/* <span className="heart-icon">❤️</span> */}
+      
         <h1>City Hospital</h1>
       </div>
       <nav className="nav-menu">
         <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <span className="icon">⬛</span>
+          <span className="icon"><LayoutDashboard/></span>
           Dashboard
         </NavLink>
         <NavLink to="/appointments" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>

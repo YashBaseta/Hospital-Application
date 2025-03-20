@@ -1,4 +1,9 @@
 /* Billing System Styles */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin-left: 240px;
+}
 .billing-container {
     padding: 24px;
     background-color: #f8fafc;

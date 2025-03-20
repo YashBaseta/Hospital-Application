@@ -11,10 +11,11 @@ import Supplies from './components/Supplies';
 import './App.css';
 import Billing from './components/billing';
 
+
 function App() {
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar/>
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

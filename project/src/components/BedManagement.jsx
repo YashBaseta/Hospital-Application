@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/CRUD.css';
 import { Button } from 'antd';
+import Sidebar from './Sidebar';
 
 
 function BedManagement() {
@@ -81,6 +82,7 @@ function BedManagement() {
   };
 
   return (
+    
     <div className="crud-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <h1>Bed Management</h1>
@@ -177,6 +179,7 @@ function BedManagement() {
         </table>
       </div>
     </div>
+    
   );
 }
 

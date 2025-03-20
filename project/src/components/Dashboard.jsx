@@ -1,34 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
-
+import Sidebar from './Sidebar';
+import axios from 'axios';
 function Dashboard() {
   const navigate = useNavigate();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [stats, setStats] = useState({
-    totalPatients: 1250,
-    todayAppointments: 48,
-    availableBeds: 25,
-    labTestsPending: 15
-  });
-
-  const [schedule, setSchedule] = useState([
-    {
-      id: 1,
-      patientName: 'John Doe',
-      type: 'General Checkup',
-      time: '09:00 AM',
-      status: 'upcoming'
-    },
-    {
-      id: 2,
-      patientName: 'Jane Smith',
-      type: 'Dental',
-      time: '10:30 AM',
-      status: 'upcoming'
-    }
-  ]);
-
+const [currentTime, setCurrentTime] = useState(new Date());
+    const [appointments, setAppointments] = useState([]);
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -36,6 +14,64 @@ function Dashboard() {
 
     return () => clearInterval(timer);
   }, []);
+
+
+const [ appointmentCount,setAppointmentCount] = useState(0);
+const [ patientCount,setPatientCount] = useState(0);
+const [ bedCount,setBedCount] = useState(0);
+const [ billCount,setbillCount] = useState(0);
+
+// Fetch Staff
+useEffect(() => {
+  fetchApp();
+  fetchPatient();
+  fetchBed();
+  fetchBill();
+}, []);
+
+const fetchApp = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/appointments');
+    setAppointments(response.data);
+    setAppointmentCount(response.data.length);
+  } catch (error) {
+    console.error('Error fetching Staff:', error);
+  }
+};
+
+const fetchPatient = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/patients');
+    setPatientCount(response.data.length);
+  } catch (error) {
+    console.error('Error fetching Staff:', error);
+  }
+};
+
+
+const fetchBed = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/beds');
+    setBedCount(response.data.length);
+  } catch (error) {
+    console.error('Error fetching Staff:', error);
+  }
+};
+
+const fetchBill = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/bills');
+    setbillCount(response.data.length);
+  } catch (error) {
+    console.error('Error fetching Staff:', error);
+  }
+};
+
+
+
+
+
+
 
   const handleQuickAction = (action) => {
     switch (action) {
@@ -67,7 +103,10 @@ function Dashboard() {
     });
   };
 
+  
+
   return (
+    
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Dashboard</h1>
@@ -78,7 +117,7 @@ function Dashboard() {
         <div className="stat-card">
           <div className="stat-icon blue">👥</div>
           <div className="stat-info">
-            <h3>{stats.totalPatients}</h3>
+            <h3>{patientCount}</h3>
             <p>Total Patients</p>
           </div>
         </div>
@@ -86,7 +125,7 @@ function Dashboard() {
         <div className="stat-card">
           <div className="stat-icon green">📅</div>
           <div className="stat-info">
-            <h3>{stats.todayAppointments}</h3>
+            <h3>{appointmentCount}</h3>
             <p>Today's Appointments</p>
           </div>
         </div>
@@ -94,16 +133,16 @@ function Dashboard() {
         <div className="stat-card">
           <div className="stat-icon purple">🛏️</div>
           <div className="stat-info">
-            <h3>{stats.availableBeds}</h3>
+            <h3>{bedCount}</h3>
             <p>Available Beds</p>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon yellow">🧪</div>
+          <div className="stat-icon yellow">💰</div>
           <div className="stat-info">
-            <h3>{stats.labTestsPending}</h3>
-            <p>Lab Tests Pending</p>
+            <h3>{billCount}</h3>
+            <p>Pending Bills</p>
           </div>
         </div>
       </div>
@@ -112,11 +151,11 @@ function Dashboard() {
         <div className="schedule-section">
           <h2>Today's Schedule</h2>
           <div className="schedule-list">
-            {schedule.map((appointment) => (
+            {appointments.map((appointment) => (
               <div key={appointment.id} className="schedule-item">
                 <div className="time-icon">⏰</div>
                 <div className="appointment-info">
-                  <h4>{appointment.patientName}</h4>
+                  <h4>{appointment.patient_name}</h4>
                   <p>{appointment.type}</p>
                   <span className="time">{appointment.time}</span>
                 </div>
@@ -163,6 +202,7 @@ function Dashboard() {
         </div>
       </div>
     </div>
+    
   );
 }
 

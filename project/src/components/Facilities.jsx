@@ -3,6 +3,7 @@ import  { Button } from 'antd';
 import axios from 'axios';
 
 import '../styles/CRUD.css';
+import Sidebar from './Sidebar';
 
 function Facilities() {
   const [facilities, setFacilities] = useState([]);
@@ -182,6 +183,7 @@ function Facilities() {
         </table>
       </div>
     </div>
+    
   );
 }
 

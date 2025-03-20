@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/CRUD.css';
 import axios from 'axios';
 import { Button } from 'antd';
+import Sidebar from './Sidebar';
 function Staff() {
   const [staffMembers, setStaffMembers] = useState([]);
 
@@ -18,6 +19,7 @@ function Staff() {
   const [editId, setEditId] = useState(null);
 
 
+
 // Fetch Staff
 useEffect(() => {
     fetchStaff();
@@ -27,6 +29,7 @@ useEffect(() => {
     try {
       const response = await axios.get('http://localhost:5000/staff');
       setStaffMembers(response.data);
+   
     } catch (error) {
       console.error('Error fetching Staff:', error);
     }
@@ -58,12 +61,14 @@ try{
     setIsEditing(false);
     setEditId(null);
     fetchStaff(); // Refresh the list
+    
   }catch(error){
     console.error("Error in submiting Staff",error);
     
   }
-
+  
 }
+
 
   const handleEdit = (staff) => {
     setShowForm(!showForm)
@@ -81,7 +86,10 @@ try{
     }
   };
 
+  
+
   return (
+    
     <div className="crud-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <h1>Staff Management</h1>
@@ -89,6 +97,8 @@ try{
       <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
         {showForm ? 'Close Form' : 'Add Staff'}
       </Button>
+   
+
     </div>
 
       {showForm && (
@@ -183,6 +193,7 @@ try{
         </table>
       </div>
     </div>
+    
   );
 }
 

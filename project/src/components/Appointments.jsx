@@ -49,6 +49,14 @@ function Appointments() {
 
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+  if (name === "phone") {
+    // Allow only numbers and limit to 10 digits
+    if (!/^\d*$/.test(value)) return; // Prevents non-numeric input
+    if (value.length > 10 ) return; // Restrict input to 10 digits
+  }
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -57,6 +65,11 @@ function Appointments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.phone.length !== 10) {
+      alert("Phone number must be exactly 10 digits.");
+      return;
+    }
+  
 
     try {
       if (isEditing) {

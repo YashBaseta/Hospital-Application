@@ -12,6 +12,8 @@ import './App.css';
 import Billing from './components/billing';
 
 
+
+
 function App() {
   return (
     <div className="app">
@@ -21,6 +23,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/appointments" element={<Appointments />} />
+       
           <Route path="/patients" element={<Patients />} />
           <Route path="/staff" element={<Staff />} />
           <Route path="/facilities" element={<Facilities />} />

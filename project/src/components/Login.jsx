@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+
 import toast from 'react-hot-toast';
 import '../styles/Auth.css';
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+ 
   const [formData, setFormData] = useState({
     email: '',
     password: ''

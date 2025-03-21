@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
-import Sidebar from './Sidebar';
 import axios from 'axios';
 function Dashboard() {
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ useEffect(() => {
   fetchApp();
   fetchPatient();
   fetchBed();
-  fetchBill();
+  // fetchBill();
 }, []);
 
 const fetchApp = async () => {
@@ -58,14 +57,14 @@ const fetchBed = async () => {
   }
 };
 
-const fetchBill = async () => {
-  try {
-    const response = await axios.get('http://localhost:5000/bills');
-    setbillCount(response.data.length);
-  } catch (error) {
-    console.error('Error fetching Staff:', error);
-  }
-};
+// const fetchBill = async () => {
+//   try {
+//     const response = await axios.get('http://localhost:5000/bills');
+//     setbillCount(response.data.length);
+//   } catch (error) {
+//     console.error('Error fetching Staff:', error);
+//   }
+// };
 
 
 
@@ -103,8 +102,7 @@ const fetchBill = async () => {
     });
   };
 
-  
-
+ 
   return (
     
     <div className="dashboard">
@@ -113,16 +111,16 @@ const fetchBill = async () => {
         <p className="last-updated">Last updated: {formatTime(currentTime)}</p>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon blue">👥</div>
+      <div className="stats-grid" >
+        <div className="stat-card"  onClick={() => navigate("/patients")}>
+          <div className="stat-icon blue" >👥</div>
           <div className="stat-info">
-            <h3>{patientCount}</h3>
+            <h3 >{patientCount}</h3>
             <p>Total Patients</p>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card"  onClick={() => navigate("/appointments")}>
           <div className="stat-icon green">📅</div>
           <div className="stat-info">
             <h3>{appointmentCount}</h3>
@@ -130,7 +128,7 @@ const fetchBill = async () => {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card"  onClick={() => navigate("/beds")}>
           <div className="stat-icon purple">🛏️</div>
           <div className="stat-info">
             <h3>{bedCount}</h3>
@@ -138,7 +136,7 @@ const fetchBill = async () => {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card"  onClick={() => navigate("/billing")}>
           <div className="stat-icon yellow">💰</div>
           <div className="stat-info">
             <h3>{billCount}</h3>

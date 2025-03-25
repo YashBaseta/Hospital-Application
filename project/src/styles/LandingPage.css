@@ -1,8 +1,21 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .landing-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Ensures the page takes the full viewport height */
+  overflow: hidden;
+
   width: 100%;
-  min-height: 100vh;
+  min-height: 100;
   background: linear-gradient(135deg, #e6f0ff 0%, #f5f7ff 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
 }
 
 .nav-bar {
@@ -51,12 +64,12 @@
 }
 
 .main-content {
-  max-width: 1200px;
+  
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 3rem;
   align-items: center;
 }
 
@@ -99,7 +112,8 @@
 
 .appointment-section {
   background: white;
-  padding: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -182,4 +196,11 @@
   .form-row {
     flex-direction: column;
   }
-}
+
+
+ 
+  .bot-icon:hover {
+    background: #3182ce;
+  }
+  
+}         

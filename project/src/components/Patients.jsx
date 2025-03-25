@@ -56,13 +56,13 @@ function Patients() {
         await axios.post('http://localhost:5000/patients', formData);
         toast.success('Patient added successfully');
       }
-      setIsEditing(false);
-      setEditId(null);
       setFormData({
         name: '', age: '', gender: '', contact: '', email: '', address: '',
         bloodGroup: '', allergies: '', medicalHistory: '', emergencyContact: '',
         insuranceInfo: '', lastVisit: '', nextAppointment: ''
       });
+      setIsEditing(false);
+      setEditId(null);
       fetchPatients();
     } catch (error) {
       console.error('Error:', error);

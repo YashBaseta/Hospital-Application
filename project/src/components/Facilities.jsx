@@ -88,7 +88,7 @@ function Facilities() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <h1>Facilities Management</h1>
       <Button style={{ height: "50px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
-        {showForm ? 'Close Form' : 'Add Bed'}
+        {showForm ? 'Close Form' : 'Add Facilities'}
       </Button>
     </div>
 

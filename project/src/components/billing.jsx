@@ -4,10 +4,12 @@ import toast from 'react-hot-toast';
 import '../styles/Billing.css';
 import {Button} from "antd"
 import Sidebar from './Sidebar';
+import axios from "axios"
 
 
 function Billing() {
   const [bills, setBills] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [selectedBill, setSelectedBill] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -16,8 +18,10 @@ function Billing() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const [billForm, setBillForm] = useState({
+  const [formData, setFormData] = useState({
+
     patient_id: '',
+  
     due_date: '',
     insurance_provider: '',
     insurance_policy_number: '',
@@ -26,31 +30,113 @@ function Billing() {
     notes: ''
   });
 
-  const [itemForm, setItemForm] = useState({
-    description: '',
-    quantity: 1,
-    unit_price: '',
-    category: ''
-  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
 
-  // Calculate billing statistics
-  const stats = {
-    totalBills: bills.length,
-    pendingAmount: bills.reduce((sum, bill) => 
-      sum + (bill.total_amount - bill.paid_amount), 0),
-    paidToday: bills.filter(bill => 
-      format(new Date(bill.updated_at), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
-      bill.status === 'paid'
-    ).length,
-    overdueBills: bills.filter(bill => 
-      bill.status !== 'paid' && isAfter(new Date(), new Date(bill.due_date))
-    ).length
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/bill')
+      .then(res => setBills(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/patients')
+      .then(res => setPatients(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (isEditing) {
+        
+        await axios.put(`http://localhost:5000/bill/${editId}`, formData);
+        setBeds(beds.map(bed => (bed._id === editId ? { ...formData, _id: editId } : bed)));
+
+        setIsEditing(false);
+        setEditId(null);
+      } else {
+        const res = await axios.post('http://localhost:5000/bill', formData);
+        setBills([...bills, res.data]);
+      }
+
+      setFormData({
+  
+        patient_id: '',
+        due_date: '',
+        insurance_provider: '',
+        insurance_policy_number: '',
+        insurance_coverage_amount: '',
+        payment_method: '',
+        notes: '' });
+      setIsEditing(false);
+      setEditId(null);
+      fetchbill(); // Refresh the list
+    } catch (error) {
+      console.error('Error submitting bed:', error);
+    }
+  };
+
+  const handleEdit = (bed) => {
+    setShowForm(!showForm)
+    setIsEditing(true);
+    setEditId(bed._id);
+    setFormData(bed);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/beds/${id}`);
+      fetchBeds();
+    } catch (error) {
+      console.error('Error deleting bed:', error);
+    }
+  };
+
+
+
+
+
+
+
+
+
+  // const [itemForm, setItemForm] = useState({
+  //   description: '',
+  //   quantity: 1,
+  //   unit_price: '',
+  //   category: ''
+  // });
+
+  // // Calculate billing statistics
+  // const stats = {
+  //   totalBills: bills.length,
+  //   pendingAmount: bills.reduce((sum, bill) => 
+  //     sum + (bill.total_amount - bill.paid_amount), 0),
+  //   paidToday: bills.filter(bill => 
+  //     format(new Date(bill.updated_at), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+  //     bill.status === 'paid'
+  //   ).length,
+  //   overdueBills: bills.filter(bill => 
+  //     bill.status !== 'paid' && isAfter(new Date(), new Date(bill.due_date))
+  //   ).length
+  // };
 
   // Filter bills
   const filteredBills = bills.filter(bill => {
     const matchesSearch = 
-      bill.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bill.patient_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bill.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (filterStatus === 'all') return matchesSearch;
@@ -62,116 +148,116 @@ function Billing() {
     return matchesSearch && bill.status === filterStatus;
   });
 
-  const handleBillSubmit = (e) => {
-    e.preventDefault();
-    const newBill = {
-      id: Date.now().toString(),
-      ...billForm,
-      patient_name: "Patient Name", // In a real app, you'd get this from a patients list
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      total_amount: 0,
-      paid_amount: 0,
-      status: 'pending',
-      items: []
-    };
+  // const handleBillSubmit = (e) => {
+  //   e.preventDefault();
+  //   const newBill = {
+  //     id: Date.now().toString(),
+  //     ...formData,
+  //     patient_name: "Patient Name", // In a real app, you'd get this from a patients list
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString(),
+  //     total_amount: 0,
+  //     paid_amount: 0,
+  //     status: 'pending',
+  //     items: []
+  //   };
     
-    setBills(prev => [...prev, newBill]);
-    toast.success('Bill created successfully');
-    setBillForm({
-      patient_id: '',
-      due_date: '',
-      insurance_provider: '',
-      insurance_policy_number: '',
-      insurance_coverage_amount: '',
-      payment_method: '',
-      notes: ''
-    });
-  };
+  //   setBills(prev => [...prev, newBill]);
+  //   toast.success('Bill created successfully');
+  //   setFormData({
+  //     patient_id: '',
+  //     due_date: '',
+  //     insurance_provider: '',
+  //     insurance_policy_number: '',
+  //     insurance_coverage_amount: '',
+  //     payment_method: '',
+  //     notes: ''
+  //   });
+  // };
 
-  const handleItemSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedBill) {
-      toast.error('Please select a bill first');
-      return;
-    }
+  // const handleItemSubmit = (e) => {
+  //   e.preventDefault();
+  //   if (!selectedBill) {
+  //     toast.error('Please select a bill first');
+  //     return;
+  //   }
 
-    const newItem = {
-      id: Date.now().toString(),
-      ...itemForm,
-      total: itemForm.quantity * parseFloat(itemForm.unit_price)
-    };
+  //   const newItem = {
+  //     id: Date.now().toString(),
+  //     ...itemForm,
+  //     total: itemForm.quantity * parseFloat(itemForm.unit_price)
+  //   };
 
-    setBills(prev => prev.map(bill => {
-      if (bill.id === selectedBill) {
-        const updatedItems = [...(bill.items || []), newItem];
-        const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
-        return {
-          ...bill,
-          items: updatedItems,
-          total_amount: newTotal
-        };
-      }
-      return bill;
-    }));
+  //   setBills(prev => prev.map(bill => {
+  //     if (bill.id === selectedBill) {
+  //       const updatedItems = [...(bill.items || []), newItem];
+  //       const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
+  //       return {
+  //         ...bill,
+  //         items: updatedItems,
+  //         total_amount: newTotal
+  //       };
+  //     }
+  //     return bill;
+  //   }));
 
-    toast.success('Item added successfully');
-    setItemForm({
-      description: '',
-      quantity: 1,
-      unit_price: '',
-      category: ''
-    });
-  };
+  //   toast.success('Item added successfully');
+  //   setItemForm({
+  //     description: '',
+  //     quantity: 1,
+  //     unit_price: '',
+  //     category: ''
+  //   });
+  // };
 
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedBillForPayment || !paymentAmount) return;
+  // const handlePaymentSubmit = (e) => {
+  //   e.preventDefault();
+  //   if (!selectedBillForPayment || !paymentAmount) return;
 
-    setBills(prev => prev.map(bill => {
-      if (bill.id === selectedBillForPayment.id) {
-        const newPaidAmount = parseFloat(bill.paid_amount) + parseFloat(paymentAmount);
-        const newStatus = newPaidAmount >= bill.total_amount ? 'paid' : 'partial';
+  //   setBills(prev => prev.map(bill => {
+  //     if (bill.id === selectedBillForPayment.id) {
+  //       const newPaidAmount = parseFloat(bill.paid_amount) + parseFloat(paymentAmount);
+  //       const newStatus = newPaidAmount >= bill.total_amount ? 'paid' : 'partial';
         
-        return {
-          ...bill,
-          paid_amount: newPaidAmount,
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-          payment_date: newStatus === 'paid' ? new Date().toISOString() : null
-        };
-      }
-      return bill;
-    }));
+  //       return {
+  //         ...bill,
+  //         paid_amount: newPaidAmount,
+  //         status: newStatus,
+  //         updated_at: new Date().toISOString(),
+  //         payment_date: newStatus === 'paid' ? new Date().toISOString() : null
+  //       };
+  //     }
+  //     return bill;
+  //   }));
 
-    toast.success('Payment recorded successfully');
-    setShowPaymentModal(false);
-    setSelectedBillForPayment(null);
-    setPaymentAmount('');
-  };
+  //   toast.success('Payment recorded successfully');
+  //   setShowPaymentModal(false);
+  //   setSelectedBillForPayment(null);
+  //   setPaymentAmount('');
+  // };
 
-  const openPaymentModal = (bill) => {
-    setSelectedBillForPayment(bill);
-    setPaymentAmount((bill.total_amount - bill.paid_amount).toFixed(2));
-    setShowPaymentModal(true);
-  };
+  // const openPaymentModal = (bill) => {
+  //   setSelectedBillForPayment(bill);
+  //   setPaymentAmount((bill.total_amount - bill.paid_amount).toFixed(2));
+  //   setShowPaymentModal(true);
+  // };
 
-  const categories = [
-    'Consultation',
-    'Laboratory',
-    'Medication',
-    'Surgery',
-    'Room Charges',
-    'Equipment',
-    'Other'
-  ];
+  // const categories = [
+  //   'Consultation',
+  //   'Laboratory',
+  //   'Medication',
+  //   'Surgery',
+  //   'Room Charges',
+  //   'Equipment',
+  //   'Other'
+  // ];
 
-  // Mock patients data
-  const patients = [
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
-    { id: '3', name: 'Mike Johnson' }
-  ];
+  // // Mock patients data
+  // const patients = [
+  //   { id: '1', name: 'John Doe' },
+  //   { id: '2', name: 'Jane Smith' },
+  //   { id: '3', name: 'Mike Johnson' }
+  // ];
 
   return (
     
@@ -203,19 +289,19 @@ function Billing() {
       <div className="billing-stats">
         <div className="stat-card">
           <div className="stat-title">Total Bills</div>
-          <div className="stat-value">{stats.totalBills}</div>
+          <div className="stat-value"></div>
         </div>
         <div className="stat-card">
           <div className="stat-title">Pending Amount</div>
-          <div className="stat-value">${stats.pendingAmount.toFixed(2)}</div>
+          <div className="stat-value"></div>
         </div>
         <div className="stat-card">
           <div className="stat-title">Paid Today</div>
-          <div className="stat-value">{stats.paidToday}</div>
+          <div className="stat-value"></div>
         </div>
         <div className="stat-card">
           <div className="stat-title">Overdue Bills</div>
-          <div className="stat-value">{stats.overdueBills}</div>
+          <div className="stat-value"></div>
         </div>
       </div>
 
@@ -232,12 +318,12 @@ function Billing() {
     </div>
 
       {showForm && (
-         <form onSubmit={handleBillSubmit} className="form-grid">
+         <form onSubmit={handleSubmit} className="form-grid">
          <div className="form-group">
            <label>Patient</label>
            <select
-             value={billForm.patient_id}
-             onChange={(e) => setBillForm({ ...billForm, patient_id: e.target.value })}
+             value={formData.patient_id}
+             onChange={(e) => setFormData({ ...formData, patient_id: e.target.value })}
              required
            >
              <option value="">Select Patient</option>
@@ -250,8 +336,8 @@ function Billing() {
            <label>Due Date</label>
            <input
              type="date"
-             value={billForm.due_date}
-             onChange={(e) => setBillForm({ ...billForm, due_date: e.target.value })}
+             value={formData.due_date}
+             onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
              required
            />
          </div>
@@ -259,8 +345,8 @@ function Billing() {
            <label>Insurance Provider</label>
            <input
              type="text"
-             value={billForm.insurance_provider}
-             onChange={(e) => setBillForm({ ...billForm, insurance_provider: e.target.value })}
+             value={formData.insurance_provider}
+             onChange={(e) => setFormData({ ...formData, insurance_provider: e.target.value })}
              placeholder="Insurance Provider"
            />
          </div>
@@ -268,8 +354,8 @@ function Billing() {
            <label>Policy Number</label>
            <input
              type="text"
-             value={billForm.insurance_policy_number}
-             onChange={(e) => setBillForm({ ...billForm, insurance_policy_number: e.target.value })}
+             value={formData.insurance_policy_number}
+             onChange={(e) => setFormData({ ...formData, insurance_policy_number: e.target.value })}
              placeholder="Policy Number"
            />
          </div>
@@ -277,8 +363,8 @@ function Billing() {
            <label>Coverage Amount</label>
            <input
              type="number"
-             value={billForm.insurance_coverage_amount}
-             onChange={(e) => setBillForm({ ...billForm, insurance_coverage_amount: e.target.value })}
+             value={formData.insurance_coverage_amount}
+             onChange={(e) => setFormData({ ...formData, insurance_coverage_amount: e.target.value })}
              placeholder="Coverage Amount"
              step="0.01"
            />
@@ -286,8 +372,8 @@ function Billing() {
          <div className="form-group">
            <label>Payment Method</label>
            <select
-             value={billForm.payment_method}
-             onChange={(e) => setBillForm({ ...billForm, payment_method: e.target.value })}
+             value={formData.payment_method}
+             onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
              required
            >
              <option value="">Select Payment Method</option>
@@ -300,8 +386,8 @@ function Billing() {
          <div className="form-group">
            <label>Notes</label>
            <textarea
-             value={billForm.notes}
-             onChange={(e) => setBillForm({ ...billForm, notes: e.target.value })}
+             value={formData.notes}
+             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
              placeholder="Additional Notes"
            />
          </div>
@@ -322,20 +408,20 @@ function Billing() {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+               <tbody>
                 {filteredBills.map(bill => (
                   <tr key={bill.id}>
-                    <td>{bill.id.slice(0, 8)}</td>
+                    <td>{bill._id.slice(0, 8)}</td>
                     <td>
                       <div>
-                        <div>{bill.patient_name}</div>
+                        <div>{bill.patient_id}</div>
                         <div className="text-sm text-gray-500">{bill.contact}</div>
                       </div>
                     </td>
-                    <td>{format(new Date(bill.created_at), 'dd/MM/yyyy')}</td>
+                    <td>{bill.due_date}</td>
                     <td>{format(new Date(bill.due_date), 'dd/MM/yyyy')}</td>
-                    <td>${bill.total_amount.toFixed(2)}</td>
-                    <td>${bill.paid_amount.toFixed(2)}</td>
+                    <td>${1}</td>
+                    <td>${2}</td>
                     <td>${(bill.total_amount - bill.paid_amount).toFixed(2)}</td>
                     <td>
                       <span className={`status-badge ${bill.status}`}>
@@ -353,7 +439,7 @@ function Billing() {
                     </td>
                   </tr>
                 ))}
-              </tbody>
+              </tbody> 
             </table>
           </div>
         </div>

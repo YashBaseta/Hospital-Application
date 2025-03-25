@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import axios from "axios"
 import '../styles/CRUD.css';
 import { Button, Flex } from 'antd';
-import Sidebar from './Sidebar';
 
 function Appointments() {
   const [formData, setFormData] = useState({
@@ -14,7 +13,7 @@ function Appointments() {
     type: '',
     status: 'Scheduled',
     phone: '',
-    duration: '30',
+    specialization: '',
     priority: 'Normal'
   });
   const [appointments, setAppointments] = useState([]);
@@ -54,7 +53,7 @@ function Appointments() {
   if (name === "phone") {
     // Allow only numbers and limit to 10 digits
     if (!/^\d*$/.test(value)) return; // Prevents non-numeric input
-    if (value.length > 10 ) return; // Restrict input to 10 digits
+    if (value.length > 12 ) return; // Restrict input to 10 digits
   }
 
     setFormData({
@@ -65,7 +64,7 @@ function Appointments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.phone.length !== 10) {
+    if (formData.phone.length !== 12) {
       alert("Phone number must be exactly 10 digits.");
       return;
     }
@@ -98,7 +97,7 @@ function Appointments() {
         type: '',
         status: 'Scheduled',
         phone: '',
-        duration: '30',
+        specialization: '',
         priority: 'Normal'
       });
     } catch (error) {
@@ -229,22 +228,55 @@ function Appointments() {
           </div>
           <div className="form-group">
 
-            <label>Doctor</label>
+            <label>Doctor Specialization</label>
             <select
-              name="doctor"
-              value={formData.doctor}
+              name="specialization"
+              value={formData.specialization}
               onChange={handleInputChange}
               required
               className="select-box"
             >
-              <option value="">Select a Doctor</option>
+              <option value="">Select a Specialization</option>
               {staffMembers.map((staff) => (
-                <option key={staff} value={staff.name}>
-                  {staff.name}
+                <option key={staff} value={staff.department}>
+                  {staff.department}
                 </option>
               ))}
             </select>
           </div>
+
+
+
+
+          <div className="form-group">
+
+<label>Doctor</label>
+<select
+  name="doctor"
+  value={formData.doctor}
+  onChange={handleInputChange}
+  required
+  className="select-box"
+>
+  <option value="">Select a Doctor</option>
+  {staffMembers
+      .filter(staff => staff.department === formData.specialization) // Filter based on specialization
+      .map(staff => (
+        <option key={staff._id} value={staff.name}>
+          {staff.name}
+    </option>
+  ))}
+</select>
+</div>
+
+
+
+
+
+
+
+
+
           <div className="form-group">
             <label>Date</label>
             <input
@@ -293,19 +325,6 @@ function Appointments() {
               {appointmentTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Duration (minutes)</label>
-            <select
-              name="duration"
-              value={formData.duration}
-              onChange={handleInputChange}
-              required
-            >
-
-              <option value="30">30</option>
-
             </select>
           </div>
           <div className="form-group">
@@ -359,7 +378,7 @@ function Appointments() {
               <th>Date</th>
               <th>Time</th>
               <th>Type</th>
-              <th>Duration</th>
+              <th>specialization</th>
               <th>Priority</th>
               <th>Status</th>
               <th>Phone</th>
@@ -374,7 +393,7 @@ function Appointments() {
                 <td>{appointment.date}</td>
                 <td>{appointment.time}</td>
                 <td>{appointment.type}</td>
-                <td>{appointment.duration} min</td>
+                <td>{appointment.specialization}</td>
                 <td>
                   <select value={appointment.priority} onChange={(e) => handlePriority(appointment._id, e.target.value)} className={`priority-badge ${appointment.priority.toLowerCase()}`}>
                     <option value="Normal">Normal</option>

@@ -11,14 +11,14 @@ try {
 
 
 const addPatient = async (req,res) => {
-    try {
-        const newPatient = new Patient(req.body);
-        const savedPatient = await newPatient.save();
-        res.status(201).json(savedPatient);
-      } catch (error) {
-        res.status(500).json({ error: 'Server error while adding patient' });
-      }
+  try {
+      const newPatient = new Patient(req.body);
+      const savedPatient = await newPatient.save();
+      res.status(201).json(savedPatient);
+    } catch (error) {
+      res.status(500).json({ error: 'Server error while adding Patient' });
     }
+  }
 
     
 

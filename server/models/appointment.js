@@ -8,7 +8,7 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     status: { type: String, default: 'Scheduled' },
     phone: String,
-    duration: String,
+    specialization: String,
     priority: { type: String, default: 'Normal' }
 });
 

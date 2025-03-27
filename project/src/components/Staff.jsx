@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/CRUD.css';
 import axios from 'axios';
 import { Button } from 'antd';
-import Sidebar from './Sidebar';
+
 function Staff() {
   const [staffMembers, setStaffMembers] = useState([]);
 
@@ -11,7 +11,8 @@ function Staff() {
     role: '',
     department: '',
     contact: '',
-    email: ''
+    email: '',
+
   });
 
   const [isEditing, setIsEditing] = useState(false);

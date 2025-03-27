@@ -1,517 +1,624 @@
-import React, { useState, useEffect } from 'react';
-import { format, isAfter } from 'date-fns';
-import toast from 'react-hot-toast';
-import '../styles/Billing.css';
-import {Button} from "antd"
-import Sidebar from './Sidebar';
-import axios from "axios"
-
+import React, { useState } from 'react';
+import { Plus, Trash2, Search, FileText, DollarSign, Calendar, User, Shield, CreditCard, AlertCircle, IndianRupee } from 'lucide-react';
+import jsPDF from 'jspdf';
+import emailjs from 'emailjs-com';
+import "../styles/Billing.css"
+import Button from 'react-bootstrap/Button';
+import axios from 'axios';
 
 function Billing() {
-  const [bills, setBills] = useState([]);
-  const [patients, setPatients] = useState([]);
-  const [selectedBill, setSelectedBill] = useState(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedBillForPayment, setSelectedBillForPayment] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  const [formData, setFormData] = useState({
-
-    patient_id: '',
+ const [bills, setBills] = useState([]);
+ const [isOpen, setIsOpen] = useState(false);
+   const [searchTerm, setSearchTerm] = useState('');
+   const [filterStatus, setFilterStatus] = useState('all');
+   const [formData, setFormData] = useState({
+     patient: '',
+     appointmentDate: '',
+     dueDate: '',
+     appointmentCost: '',
+     insuranceProvider: '',
+     policyNumber: '',
+     coverageAmount: '',
+     paymentMethod: '',
+     additionalCharges: [],
+     notes: '',
+     status: 'pending',
+     total:""
+   });
+ 
+   const stats = {
+     totalBills: bills.length,
+     pendingAmount: bills.reduce((sum, bill) => sum + (bill.status === 'pending' ? parseFloat(bill.total) : 0), 0),
+     paidToday: bills.filter(bill => 
+       bill.status === 'paid' && 
+       new Date(bill.paidDate).toDateString() === new Date().toDateString()
+     ).reduce((sum, bill) => sum + parseFloat(bill.total), 0),
+     overdueBills: bills.filter(bill => 
+       bill.status === 'pending' && 
+       new Date(bill.dueDate) < new Date()
+     ).length
+   };
+ 
+   const addCharge = () => {
+     setFormData(prev => ({
+       ...prev,
+       additionalCharges: [...prev.additionalCharges, { description: '', amount: '' }]
+     }));
+   };
+ 
+   const removeCharge = (index) => {
+     setFormData(prev => ({
+       ...prev,
+       additionalCharges: prev.additionalCharges.filter((_, i) => i !== index)
+     }));
+   };
+ 
+   const handleChargeChange = (index, field, value) => {
+     setFormData(prev => ({
+       ...prev,
+       additionalCharges: prev.additionalCharges.map((charge, i) => 
+         i === index ? { ...charge, [field]: value } : charge
+       )
+     }));
+   };
+ 
+   const calculateTotal = () => {
+     const appointmentCost = parseFloat(formData.appointmentCost) || 0;
+     const additionalTotal = formData.additionalCharges.reduce((sum, charge) => 
+       sum + (parseFloat(charge.amount) || 0), 0
+     );
+     const total = appointmentCost + additionalTotal;
+     const coverage = parseFloat(formData.coverageAmount) || 0;
+     return Math.max(0, total - coverage).toFixed(2);
+   };
+ 
+   
+ 
+ 
+ 
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+   const res = await axios.post(`http://localhost:5000/bill`,formData)
+   
+   const newBill = {
+    data:res.data,
+     id: Date.now(),
+     ...formData,
+     total: calculateTotal(),
+     status: 'complete',
+     createdAt: new Date().toISOString()
+   };
+   setBills(prev => [...prev, newBill]);
+   
+   generatePDF(newBill);
+   
+   setFormData({
+     patient: '',
+     appointmentDate: '',
+     dueDate: '',
+     appointmentCost: '',
+     insuranceProvider: '',
+     policyNumber: '',
+     coverageAmount: '',
+     paymentMethod: '',
+     additionalCharges: [],
+     notes: '',
+     status: 'pending',
+     total:calculateTotal()
+   });
+ };
+ 
+ const generatePDF = (bill) => {
+   const doc = new jsPDF();
+   
+   // Set title
+   doc.setFont("helvetica", "bold");
+   doc.setFontSize(22);
+   doc.text("Medical Invoice", 20, 20);
+ 
+   // Basic details section
+   doc.setFontSize(12);
+   doc.setFont("helvetica", "normal");
+   doc.text(`Patient:`, 20, 40);
+   doc.setFont("helvetica", "bold");
+   doc.text(`${bill.patient}`, 50, 40);
+ 
+   doc.setFont("helvetica", "normal");
+   doc.text(`Appointment Date:`, 20, 50);
+   doc.setFont("helvetica", "bold");
+   doc.text(`${new Date(bill.appointmentDate).toLocaleDateString()}`, 60, 50);
+ 
+   doc.setFont("helvetica", "normal");
+   doc.text(`Due Date:`, 20, 60);
+   doc.setFont("helvetica", "bold");
+   doc.text(`${new Date(bill.dueDate).toLocaleDateString()}`, 50, 60);
+ 
+   doc.setFont("helvetica", "normal");
+   doc.text(`Total Amount:`, 20, 70);
+   doc.setFont("helvetica", "bold");
+   doc.text(`${bill.total}`, 55, 70);
+ 
+   doc.setFont("helvetica", "normal");
+   doc.text(`Status:`, 20, 80);
+   doc.setFont("helvetica", "bold");
+   doc.text(`${bill.status}`, 45, 80);
+ 
+   let yOffset = 100; // Start position for additional charges
+ 
+   if (bill.additionalCharges.length > 0) {
+     doc.setFont("helvetica", "bold");
+     doc.setFontSize(14);
+     doc.text("Additional Charges", 20, yOffset);
+     yOffset += 10;
+ 
+     // Table Header
+     doc.setFont("helvetica", "bold");
+     doc.setFillColor(220, 220, 220); // Light gray background
+     doc.rect(20, yOffset, 170, 10, "F"); // Header box
+     doc.text("Description", 25, yOffset + 7);
+     doc.text("Amount ($)", 140, yOffset + 7);
+     yOffset += 15;
+ 
+     // Table Content
+    // Add appointment cost as the first item in the table
+   doc.text("1. Appointment Fee", 25, yOffset);
+   doc.text(`${bill.appointmentCost}`, 150, yOffset);
+   yOffset += 10;
+ 
+   // Additional Charges
+   bill.additionalCharges.forEach((charge, index) => {
+     doc.text(`${index + 2}. ${charge.description}`, 25, yOffset); // +2 to adjust numbering
+     doc.text(`${charge.amount}`, 150, yOffset);
+     yOffset += 10;
+     });
+     doc.setFont("helvetica", "bold");
+     doc.text("Coverage Deduction:", 25, yOffset + 10);
+     doc.text(`${bill.coverageAmount}`, 150, yOffset + 10);
+     yOffset += 20;
+   
   
-    due_date: '',
-    insurance_provider: '',
-    insurance_policy_number: '',
-    insurance_coverage_amount: '',
-    payment_method: '',
-    notes: ''
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-
-  useEffect(() => {
-    axios.get('http://localhost:5000/bill')
-      .then(res => setBills(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-
-  useEffect(() => {
-    axios.get('http://localhost:5000/patients')
-      .then(res => setPatients(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      if (isEditing) {
-        
-        await axios.put(`http://localhost:5000/bill/${editId}`, formData);
-        setBeds(beds.map(bed => (bed._id === editId ? { ...formData, _id: editId } : bed)));
-
-        setIsEditing(false);
-        setEditId(null);
-      } else {
-        const res = await axios.post('http://localhost:5000/bill', formData);
-        setBills([...bills, res.data]);
-      }
-
-      setFormData({
-  
-        patient_id: '',
-        due_date: '',
-        insurance_provider: '',
-        insurance_policy_number: '',
-        insurance_coverage_amount: '',
-        payment_method: '',
-        notes: '' });
-      setIsEditing(false);
-      setEditId(null);
-      fetchbill(); // Refresh the list
-    } catch (error) {
-      console.error('Error submitting bed:', error);
-    }
-  };
-
-  const handleEdit = (bed) => {
-    setShowForm(!showForm)
-    setIsEditing(true);
-    setEditId(bed._id);
-    setFormData(bed);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/beds/${id}`);
-      fetchBeds();
-    } catch (error) {
-      console.error('Error deleting bed:', error);
-    }
-  };
-
-
-
-
-
-
-
-
-
-  // const [itemForm, setItemForm] = useState({
-  //   description: '',
-  //   quantity: 1,
-  //   unit_price: '',
-  //   category: ''
-  // });
-
-  // // Calculate billing statistics
-  // const stats = {
-  //   totalBills: bills.length,
-  //   pendingAmount: bills.reduce((sum, bill) => 
-  //     sum + (bill.total_amount - bill.paid_amount), 0),
-  //   paidToday: bills.filter(bill => 
-  //     format(new Date(bill.updated_at), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
-  //     bill.status === 'paid'
-  //   ).length,
-  //   overdueBills: bills.filter(bill => 
-  //     bill.status !== 'paid' && isAfter(new Date(), new Date(bill.due_date))
-  //   ).length
-  // };
-
-  // Filter bills
-  const filteredBills = bills.filter(bill => {
-    const matchesSearch = 
-      bill.patient_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bill.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filterStatus === 'all') return matchesSearch;
-    if (filterStatus === 'overdue') {
-      return matchesSearch && 
-        bill.status !== 'paid' && 
-        isAfter(new Date(), new Date(bill.due_date));
-    }
-    return matchesSearch && bill.status === filterStatus;
-  });
-
-  // const handleBillSubmit = (e) => {
-  //   e.preventDefault();
-  //   const newBill = {
-  //     id: Date.now().toString(),
-  //     ...formData,
-  //     patient_name: "Patient Name", // In a real app, you'd get this from a patients list
-  //     created_at: new Date().toISOString(),
-  //     updated_at: new Date().toISOString(),
-  //     total_amount: 0,
-  //     paid_amount: 0,
-  //     status: 'pending',
-  //     items: []
-  //   };
-    
-  //   setBills(prev => [...prev, newBill]);
-  //   toast.success('Bill created successfully');
-  //   setFormData({
-  //     patient_id: '',
-  //     due_date: '',
-  //     insurance_provider: '',
-  //     insurance_policy_number: '',
-  //     insurance_coverage_amount: '',
-  //     payment_method: '',
-  //     notes: ''
-  //   });
-  // };
-
-  // const handleItemSubmit = (e) => {
-  //   e.preventDefault();
-  //   if (!selectedBill) {
-  //     toast.error('Please select a bill first');
-  //     return;
-  //   }
-
-  //   const newItem = {
-  //     id: Date.now().toString(),
-  //     ...itemForm,
-  //     total: itemForm.quantity * parseFloat(itemForm.unit_price)
-  //   };
-
-  //   setBills(prev => prev.map(bill => {
-  //     if (bill.id === selectedBill) {
-  //       const updatedItems = [...(bill.items || []), newItem];
-  //       const newTotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
-  //       return {
-  //         ...bill,
-  //         items: updatedItems,
-  //         total_amount: newTotal
-  //       };
-  //     }
-  //     return bill;
-  //   }));
-
-  //   toast.success('Item added successfully');
-  //   setItemForm({
-  //     description: '',
-  //     quantity: 1,
-  //     unit_price: '',
-  //     category: ''
-  //   });
-  // };
-
-  // const handlePaymentSubmit = (e) => {
-  //   e.preventDefault();
-  //   if (!selectedBillForPayment || !paymentAmount) return;
-
-  //   setBills(prev => prev.map(bill => {
-  //     if (bill.id === selectedBillForPayment.id) {
-  //       const newPaidAmount = parseFloat(bill.paid_amount) + parseFloat(paymentAmount);
-  //       const newStatus = newPaidAmount >= bill.total_amount ? 'paid' : 'partial';
-        
-  //       return {
-  //         ...bill,
-  //         paid_amount: newPaidAmount,
-  //         status: newStatus,
-  //         updated_at: new Date().toISOString(),
-  //         payment_date: newStatus === 'paid' ? new Date().toISOString() : null
-  //       };
-  //     }
-  //     return bill;
-  //   }));
-
-  //   toast.success('Payment recorded successfully');
-  //   setShowPaymentModal(false);
-  //   setSelectedBillForPayment(null);
-  //   setPaymentAmount('');
-  // };
-
-  // const openPaymentModal = (bill) => {
-  //   setSelectedBillForPayment(bill);
-  //   setPaymentAmount((bill.total_amount - bill.paid_amount).toFixed(2));
-  //   setShowPaymentModal(true);
-  // };
-
-  // const categories = [
-  //   'Consultation',
-  //   'Laboratory',
-  //   'Medication',
-  //   'Surgery',
-  //   'Room Charges',
-  //   'Equipment',
-  //   'Other'
-  // ];
-
-  // // Mock patients data
-  // const patients = [
-  //   { id: '1', name: 'John Doe' },
-  //   { id: '2', name: 'Jane Smith' },
-  //   { id: '3', name: 'Mike Johnson' }
-  // ];
-
-  return (
-    
-    <div className="billing-container">
-      <div className="billing-header">
-        <h1>Billing Management</h1>
-        <div className="header-actions">
-          <input
-            type="text"
-            placeholder="Search bills..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Bills</option>
-            <option value="pending">Pending</option>
-            <option value="partial">Partial</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
-          </select>
-        </div>
+     
+   
+     // Final Amount Payable
+     doc.setFont("helvetica", "bold");
+     doc.setFontSize(14);
+     doc.text("Final Amount Payable:", 20, yOffset + 10);
+     doc.text(`${bill.total}`, 150, yOffset + 10);
+     yOffset += 20;
+   }
+ 
+   // Footer
+   doc.setFontSize(10);
+   doc.setFont("helvetica", "italic");
+   doc.setTextColor(100);
+   doc.text("Thank you for choosing our hospital. Get well soon!", 20, yOffset + 20);
+ 
+   doc.save(`Medical_Invoice_${bill.patient}.pdf`);
+   
+   sendEmail(bill, doc);
+ };
+ 
+ const sendEmail = (bill, doc) => {
+   
+   const emailData = {
+     to_email: "yashbaseta05@gmail.com", // Replace with actual email
+     from_name: "Hospital Billing",
+     subject: `Invoice #${bill.id}`,
+     message: `Dear ${bill.patient}, please find your invoice attached.
+     billID:${bill.id}          
+     appointment_date:${new Date(bill.appointmentDate).toLocaleDateString()},
+     due_date: ${new Date(bill.dueDate).toLocaleDateString()},
+     total_amount:${ bill.total},`
+     
+     // pdf: doc.output('datauristring')
+   };
+ 
+   emailjs.send(
+     'service_y80hf59', 
+     'template_494vr0m', 
+     emailData, 
+     'PYsp2rge6JYGQODO2'
+   )
+   .then(response => {
+     alert("Invoice sent successfully!");
+   })
+   .catch(error => {
+     console.error("Email send error: ", error);
+   });
+ };
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+   const handleStatusChange = (billId, newStatus) => {
+     setBills(prev => prev.map(bill => {
+       if (bill.id === billId) {
+         return {
+           ...bill,
+           status: newStatus,
+           paidDate: newStatus === 'paid' ? new Date().toISOString() : null
+         };
+       }
+       return bill;
+     }));
+   };
+ 
+   const filteredBills = bills
+     .filter(bill => {
+       const matchesSearch = bill.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           bill.id.toString().includes(searchTerm);
+       const matchesStatus = filterStatus === 'all' || bill.status === filterStatus;
+       return matchesSearch && matchesStatus;
+     })
+     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+ 
+   return (
+     <div className="container">
+       <div className="header">
+         <div className="header-content">
+           <div className="header-title">
+             <FileText size={24} />
+             <h1>Medical Billing System</h1>
+           </div>
+           <div className="search-bar">
+             <Search size={20} />
+             <input
+               type="text"
+               placeholder="Search bills by patient name or ID..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
+             <select
+               value={filterStatus}
+               onChange={(e) => setFilterStatus(e.target.value)}
+               className="status-filter"
+             >
+               <option value="all">All Status</option>
+               <option value="pending">Pending</option>
+               <option value="paid">Paid</option>
+               <option value="overdue">Overdue</option>
+             </select>
+           </div>
+           
       </div>
+           
+ 
+         <div className="stats-container">
+           <div className="stat-card">
+             <div className="stat-icon">
+               <FileText size={24} />
+             </div>
+             <div className="stat-info">
+               <h3>Total Bills</h3>
+               <p>{stats.totalBills}</p>
+             </div>
+           </div>
+           <div className="stat-card">
+             <div className="stat-icon">
+             <IndianRupee  size={24} />
+             </div>
+             <div className="stat-info">
+               <h3>Pending Amount</h3>
+               <p>{stats.pendingAmount.toFixed(2)}</p>
+             </div>
+           </div>
+           <div className="stat-card">
+             <div className="stat-icon">
+               <CreditCard size={24} />
+             </div>
+             <div className="stat-info">
+               <h3>Paid Today</h3>
+               <p>{stats.paidToday.toFixed(2)}</p>
+             </div>
+           </div>
+           <div className="stat-card">
+             <div className="stat-icon">
+               <AlertCircle size={24} />
+             </div>
+             <div className="stat-info">
+               <h3>Overdue Bills</h3>
+               <p>{stats.overdueBills}</p>
+             </div>
+           </div>
+         </div>
+       </div>
+ 
+       <div className="content">
+         <div className="bills-list">
+           <div className="section-header">
+             <h2>Bills List</h2>
+             <div className="bill-count">
+               Showing {filteredBills.length} of {bills.length} bills
+             </div>
 
-      <div className="billing-stats">
-        <div className="stat-card">
-          <div className="stat-title">Total Bills</div>
-          <div className="stat-value"></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-title">Pending Amount</div>
-          <div className="stat-value"></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-title">Paid Today</div>
-          <div className="stat-value"></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-title">Overdue Bills</div>
-          <div className="stat-value"></div>
-        </div>
-      </div>
-
-      <div className="billing-grid">
-        <div className="bill-section">
-
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Bills List</h2>
-      
-      <Button style={{ height: "20px",marginTop:"1px", padding: "20px" }} type='primary' onClick={() => setShowForm(!showForm)}>
-        {showForm ? 'Close Form' : 'Add Bill'}
+             <Button varient="info" onClick={() => setIsOpen(!isOpen)}>
+           {isOpen ? 'Close Form' : 'Add bill'}
       </Button>
-    </div>
-
-      {showForm && (
-         <form onSubmit={handleSubmit} className="form-grid">
-         <div className="form-group">
-           <label>Patient</label>
-           <select
-             value={formData.patient_id}
-             onChange={(e) => setFormData({ ...formData, patient_id: e.target.value })}
-             required
-           >
-             <option value="">Select Patient</option>
-             {patients.map(patient => (
-               <option key={patient.id} value={patient.id}>{patient.name}</option>
-             ))}
-           </select>
-         </div>
-         <div className="form-group">
-           <label>Due Date</label>
-           <input
-             type="date"
-             value={formData.due_date}
-             onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-             required
-           />
-         </div>
-         <div className="form-group">
-           <label>Insurance Provider</label>
-           <input
-             type="text"
-             value={formData.insurance_provider}
-             onChange={(e) => setFormData({ ...formData, insurance_provider: e.target.value })}
-             placeholder="Insurance Provider"
-           />
-         </div>
-         <div className="form-group">
-           <label>Policy Number</label>
-           <input
-             type="text"
-             value={formData.insurance_policy_number}
-             onChange={(e) => setFormData({ ...formData, insurance_policy_number: e.target.value })}
-             placeholder="Policy Number"
-           />
-         </div>
-         <div className="form-group">
-           <label>Coverage Amount</label>
-           <input
-             type="number"
-             value={formData.insurance_coverage_amount}
-             onChange={(e) => setFormData({ ...formData, insurance_coverage_amount: e.target.value })}
-             placeholder="Coverage Amount"
-             step="0.01"
-           />
-         </div>
-         <div className="form-group">
-           <label>Payment Method</label>
-           <select
-             value={formData.payment_method}
-             onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
-             required
-           >
-             <option value="">Select Payment Method</option>
-             <option value="Cash">Cash</option>
-             <option value="Credit Card">Credit Card</option>
-             <option value="Insurance">Insurance</option>
-             <option value="Bank Transfer">Bank Transfer</option>
-           </select>
-         </div>
-         <div className="form-group">
-           <label>Notes</label>
-           <textarea
-             value={formData.notes}
-             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-             placeholder="Additional Notes"
-           />
-         </div>
-         <button type="submit" className="btn-submit btn-primary">Create Bill</button>
-       </form>)}
-          <div className="table-container">
-            <table className="bill-table">
-              <thead>
-                <tr>
-                  <th>Bill ID</th>
-                  <th>Patient</th>
-                  <th>Date</th>
-                  <th>Due Date</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Balance</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-               <tbody>
-                {filteredBills.map(bill => (
-                  <tr key={bill.id}>
-                    <td>{bill._id.slice(0, 8)}</td>
-                    <td>
-                      <div>
-                        <div>{bill.patient_id}</div>
-                        <div className="text-sm text-gray-500">{bill.contact}</div>
-                      </div>
-                    </td>
-                    <td>{bill.due_date}</td>
-                    <td>{format(new Date(bill.due_date), 'dd/MM/yyyy')}</td>
-                    <td>${1}</td>
-                    <td>${2}</td>
-                    <td>${(bill.total_amount - bill.paid_amount).toFixed(2)}</td>
-                    <td>
-                      <span className={`status-badge ${bill.status}`}>
-                        {bill.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => openPaymentModal(bill)}
-                        className="btn btn-primary"
-                        disabled={bill.status === 'paid'}
-                      >
-                        Record Payment
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody> 
-            </table>
-          </div>
-        </div>
       </div>
+      {isOpen && (
+  <div className="create-bill"> 
+            <div className="section-header">
+             <h2>Create New Bill</h2>
+           </div> 
+           
+            <form onSubmit={handleSubmit}>
+             <div className="form-row">
+               <div className="form-group">
+                 <label>
+                   <User size={16} />
+                   Patient Name
+                 </label>
+                 <input
+                   type="text"
+                   className="form-control"
+            placeholder="Patient's Name "
+                   value={formData.patient}
+                   onChange={e => setFormData(prev => ({ ...prev, patient: e.target.value }))}
+                   required
+                 />
+               </div>
+               <div className='form-group'>
+               <label > Patient Email</label>
+          <input
+            type="email"
+            className="form-control"
+            name="email"
+            value={formData.email}
+          onChange={e => setFormData(prev => ({ ...prev, patient: e.target.value }))}
+            placeholder="Patient's email"
+            required
+          />
+               </div>
+               <div className="form-group">
+                 <label>
+                   <Calendar size={16} />
+                   Appointment Date
+                 </label>
+                 <input
+                   type="date"
+                   className="form-control"
+                   value={formData.appointmentDate}
+                   onChange={e => setFormData(prev => ({ ...prev, appointmentDate: e.target.value }))}
+                   required
+                 />
+               </div>
+               
+             </div>
+ 
+             <div className="form-row">
+               <div className="form-group">
+                 <label>
+                   <Calendar size={16} />
+                   Due Date
+                 </label>
+                 <input
+                   type="date"
+                   className="form-control"
+                   value={formData.dueDate}
+                   onChange={e => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                   required
+                 />
+               </div>
+ 
+               <div className="form-group">
+                 <label>
+                 <IndianRupee size={16} />
+                   Appointment Cost ($)
+                 </label>
+                 <input
+                   type="number"
+                   className="form-control"
+            placeholder="Enter Amount"
+                   value={formData.appointmentCost}
+                   onChange={e => setFormData(prev => ({ ...prev, appointmentCost: e.target.value }))}
+                   required
+                   min="0"
+                   step="0.01"
+                 />
+               </div>
+               <div className="form-group">
+                 <label>
+                   <Shield size={16} />
+                   Insurance Provider
+                 </label>
+                 <input
+                 placeholder="Insurance Company Name"
+                   type="text"
+                   className="form-control"
+                   value={formData.insuranceProvider}
+                   onChange={e => setFormData(prev => ({ ...prev, insuranceProvider: e.target.value }))}
+                 />
+               </div>
+             </div>
+ 
+             <div className="form-row">
+               
+ 
+               <div className="form-group">
+                 <label>
+                   <FileText size={16} />
+                   Policy Number
+                 </label>
+                 <input
+                 placeholder="Policy Number"
+                   type="text"
+                   className="form-control"
+                   value={formData.policyNumber}
+                   onChange={e => setFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                 />
+               </div>
 
-      {showPaymentModal && selectedBillForPayment && (
-        <div className="payment-modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Record Payment</h3>
-              <button
-                className="close-button"
-                onClick={() => setShowPaymentModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handlePaymentSubmit} className="payment-form">
-              <div className="form-group">
-                <label>Patient Name</label>
-                <input
-                  type="text"
-                  value={selectedBillForPayment.patient_name}
-                  disabled
-                />
-              </div>
-              <div className="form-group">
-                <label>Total Amount</label>
-                <input
-                  type="text"
-                  value={`$${selectedBillForPayment.total_amount.toFixed(2)}`}
-                  disabled
-                />
-              </div>
-              <div className="form-group">
-                <label>Amount Paid</label>
-                <input
-                  type="text"
-                  value={`$${selectedBillForPayment.paid_amount.toFixed(2)}`}
-                  disabled
-                />
-              </div>
-              <div className="form-group">
-                <label>Payment Amount</label>
-                <input
-                  type="number"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  step="0.01"
-                  required
-                  max={selectedBillForPayment.total_amount - selectedBillForPayment.paid_amount}
-                />
-              </div>
-              <div className="bill-actions">
-                <button type="submit" className="btn btn-primary">
-                  Confirm Payment
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowPaymentModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+             
+               <div className="form-group">
+                 <label>
+                   <IndianRupee size={16} />
+                   Coverage Amount ($)
+                 </label>
+                 <input
+                 placeholder="Coverage Amount"
+                   type="number"
+                   className="form-control"
+                   value={formData.coverageAmount}
+                   onChange={e => setFormData(prev => ({ ...prev, coverageAmount: e.target.value }))}
+                   min="0"
+                   step="0.01"
+                 />
+               </div>
+ 
+               <div className="form-group">
+                 <label>
+                   <CreditCard size={16} />
+                   Payment Method
+                 </label>
+                 <select
+                   className="form-control"
+                   value={formData.paymentMethod}
+                   onChange={e => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                   required
+                 >
+                   <option value="">Select Payment Method</option>
+                   <option value="cash">Cash</option>
+                   <option value="credit">Credit Card</option>
+                   <option value="debit">Debit Card</option>
+                   <option value="insurance">Insurance</option>
+                 </select>
+               </div>
+             </div>
+ 
+             <div className="charges-section">
+               <div className="section-header">
+                 <h3>Additional Charges</h3>
+                 <button type="button" className="btn btn-secondary" onClick={addCharge}>
+                   <Plus size={16} /> Add Charge
+                 </button>
+               </div>
+               
+               {formData.additionalCharges.map((charge, index) => (
+                 <div key={index} className="charge-item">
+                   <input
+                     type="text"
+                     className="form-control"
+                     placeholder="Description"
+                     value={charge.description}
+                     onChange={e => handleChargeChange(index, 'description', e.target.value)}
+                     required
+                   />
+                   <input
+                     type="number"
+                     className="form-control"
+                     placeholder="Amount"
+                     value={charge.amount}
+                     onChange={e => handleChargeChange(index, 'amount', e.target.value)}
+                     required
+                     min="0"
+                     step="0.01"
+                   />
+                   <button
+                     type="button"
+                     className="btn btn-danger"
+                     onClick={() => removeCharge(index)}
+                   >
+                     <Trash2 size={16} />
+                   </button>
+                 </div>
+               ))}
+             </div>
+ 
+             <div className="form-group">
+               <label>Notes</label>
+               <textarea
+                 className="form-control"
+                 value={formData.notes}
+                 onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                 rows="3"
+                 placeholder="Add any additional notes or comments..."
+               ></textarea>
+             </div>
+ 
+             <div className="form-summary">
+               <div className="total-amount">
+                 <h3>Total Amount: {calculateTotal()}</h3>
+                 {parseFloat(formData.coverageAmount) > 0 && (
+                   <p className="coverage-info">
+                     (Including insurance coverage of ${formData.coverageAmount})
+                   </p>
+                 )}
+               </div>
+               <button type="submit" style={ { width:"150px", height:"50px", paddingLeft:"40px" }}  className="btn btn-primary">
+                 Create Bill
+               </button>
+             </div>
+           </form> 
+          </div> 
+
+
+
+
+
+
+
+
+
       )}
-    </div>
-    
-  );
-}
 
+
+           
+           <div className="table-container">
+             <table className="bills-table">
+               <thead>
+                 <tr>
+                   <th>Bill ID</th>
+                   <th>Patient</th>
+                   <th>Date</th>
+                   <th>Due Date</th>
+                   <th>Total</th>
+                   <th>Insurance Cover</th>
+                
+                   <th>Actions</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {filteredBills.map(bill => (
+                   <tr key={bill.id} className={bill.status === 'overdue' ? 'overdue-row' : ''}>
+                     <td>#{bill.id}</td>
+                     <td>{bill.patient}</td>
+                     <td>{new Date(bill.appointmentDate).toLocaleDateString()}</td>
+                     <td>{new Date(bill.dueDate).toLocaleDateString()}</td>
+                     <td>${bill.total}</td>
+                     <td>${bill.coverageAmount || '0.00'}</td>
+                    
+                     <td>
+                       <select
+                         value={bill.status}
+                         onChange={(e) => handleStatusChange(bill.id, e.target.value)}
+                         className="status-select"
+                       >
+                         <option value="pending">Pending</option>
+                         <option value="paid">Paid</option>
+                         <option value="overdue">Overdue</option>
+                       </select>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+         </div>
+
+       </div>
+     </div>
+   );
+ }
 export default Billing;

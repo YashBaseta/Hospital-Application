@@ -1,9 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import '../styles/DoctorDashboard.css';
-import Sidebar from './Sidebar';
+import Button from 'react-bootstrap/Button';
+import axios from 'axios';
 
 function DoctorDashboard() {
+  
+  const [getEmail, setEmail] = useState(null);
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [filteredStaff, setFilteredStaff] = useState([]);
+
+  // Fetch Email
+  useEffect(() => {
+    fetchEmail();
+  }, []);
+
+  const fetchEmail = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/auth/user");
+      console.log("Fetched Email:", response.data); // Debugging
+      setEmail(response.data.email); // Ensure email is extracted
+    } catch (error) {
+      console.error("Error fetching email:", error);
+    }
+  };
+
+  // Fetch Staff
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  const fetchStaff = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/staff");
+      console.log("Fetched Staff:", response.data); // Debugging
+      setStaffMembers(response.data);
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+    }
+  };
+
+  // Filter Staff Members based on Email Match
+  useEffect(() => {
+    if (getEmail && staffMembers.length > 0) {
+      console.log("Email to match:", getEmail);
+      console.log("Staff Emails:", staffMembers.map((staff) => staff.email));
+
+      const matchedStaff = staffMembers.filter(
+        (staff) => staff.email.toLowerCase() === getEmail.toLowerCase()
+      );
+
+      console.log("Matched Staff:", matchedStaff);
+      setFilteredStaff(matchedStaff);
+    }
+  }, [getEmail, staffMembers]);
+
+
+
+
+
+
+
+
   // Mock doctor data - in real app would come from auth context/API
   const doctorProfile = {
     id: 'D001',
@@ -25,7 +83,7 @@ function DoctorDashboard() {
     {
       id: 1,
       patientName: 'John Doe',
-      date: '2024-03-22',
+      date: '2024-03-26',
       time: '09:00',
       type: 'Consultation',
       status: 'scheduled',
@@ -67,7 +125,8 @@ function DoctorDashboard() {
       nextAppointment: '2024-03-22'
     }
   ]);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [note, setNote] = useState("");
   const [activeTab, setActiveTab] = useState('dashboard');
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,7 +221,7 @@ function DoctorDashboard() {
           </div>
           <div className="appointments-list">
             {filteredAppointments
-              .filter(app => app.date === format(new Date(), 'yyyy-MM-dd'))
+              // .filter(app => app.date === format(new Date(), 'yyyy-MM-dd'))
               .map(appointment => (
                 <div key={appointment.id} className="appointment-card">
                   <div className="appointment-header">
@@ -187,9 +246,42 @@ function DoctorDashboard() {
                       <span>{appointment.type}</span>
                     </div>
                   </div>
-                  <div className="medical-info">
+                  <div className="medical-info" >
+                    <div>
                     <p><strong>Symptoms:</strong> {appointment.symptoms}</p>
                     <p><strong>Medical History:</strong> {appointment.history}</p>
+                    </div>
+                    <button className="note-button" onClick={() => setIsOpen(true)}>
+        Note
+      </button>
+                    {isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Doctor's Note</h2>
+            <textarea
+              className="textarea"
+              rows="4"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Write your notes here..."
+            />
+            <div className="modal-actions">
+              <button className="close-button" onClick={() => setIsOpen(false)}>
+                Close
+              </button>
+              <button 
+                className="save-button"
+                onClick={() => {
+                  console.log("Saved Note:", note);
+                  setIsOpen(false);
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
                   </div>
                 </div>
               ))}
@@ -309,7 +401,12 @@ function DoctorDashboard() {
                 <div className="info-grid">
                   <div className="info-item">
                     <label>Name</label>
-                    <p>{doctorProfile.name}</p>
+                  {filteredStaff.map((s) =>(
+
+                    
+                    <p>{e.email}</p>
+                  ))}
+                   
                   </div>
                   <div className="info-item">
                     <label>Specialization</label>
@@ -331,7 +428,12 @@ function DoctorDashboard() {
                 <div className="info-grid">
                   <div className="info-item">
                     <label>Email</label>
-                    <p>{doctorProfile.email}</p>
+                   {filteredStaff.map((e) =>(
+
+                     
+                     <p>{e.email}</p>
+                  ))}
+
                   </div>
                   <div className="info-item">
                     <label>Contact</label>
@@ -367,3 +469,6 @@ function DoctorDashboard() {
 }
 
 export default DoctorDashboard;
+
+
+

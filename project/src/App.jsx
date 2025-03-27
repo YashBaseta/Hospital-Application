@@ -113,10 +113,10 @@ import DoctorDashboard from './components/DoctorDashboard';
 import Appointments from './components/Appointments';
 import Patients from './components/Patients';
 import Staff from './components/Staff';
-import Facilities from './components/Facilities';
+
 import BedManagement from './components/BedManagement';
 import Supplies from './components/Supplies';
-import Billing from './components/Billing';
+import Billing from "./components/billing"
 import Login from './pages/Login';
 import './App.css';
 
@@ -156,7 +156,6 @@ function App() {
           <Route path="/appointments" element={<PrivateRoute allowedRoles={["admin", "doctor"]}><Appointments /></PrivateRoute>} />
           <Route path="/patients" element={<PrivateRoute allowedRoles={["admin", "doctor"]}><Patients /></PrivateRoute>} />
           <Route path="/staff" element={<PrivateRoute allowedRoles={["admin"]}><Staff /></PrivateRoute>} />
-          <Route path="/facilities" element={<PrivateRoute allowedRoles={["admin"]}><Facilities /></PrivateRoute>} />
           <Route path="/beds" element={<PrivateRoute allowedRoles={["admin"]}><BedManagement /></PrivateRoute>} />
           <Route path="/supplies" element={<PrivateRoute allowedRoles={["admin"]}><Supplies /></PrivateRoute>} />
           <Route path="/billing" element={<PrivateRoute allowedRoles={["admin"]}><Billing /></PrivateRoute>} />

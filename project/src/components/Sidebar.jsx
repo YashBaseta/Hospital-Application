@@ -29,10 +29,6 @@ function Sidebar() {
           <span className="icon">👨‍⚕️</span>
           Staff
         </NavLink>
-        <NavLink to="/facilities" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <span className="icon">🏥</span>
-          Facilities
-        </NavLink>
         <NavLink to="/beds" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <span className="icon">🛏️</span>
           Beds

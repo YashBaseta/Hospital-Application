@@ -5,6 +5,20 @@ const { validationResult } = require("express-validator");
 require("dotenv").config();
 
 
+exports.getLogin = async (req, res) => {
+    try {
+        const user = await User.find();
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+
+
+
+
 // Register a new user
 exports.register = async (req, res) => {
   try {
@@ -59,9 +73,10 @@ exports.login = async (req, res) => {
 // Get user profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select(" email -password");
     res.json(user);
   } catch (error) {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+

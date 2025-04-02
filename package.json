@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "antd": "^5.24.5"
+    "antd": "^5.24.5",
+    "fs": "^0.0.1-security",
+    "nodemailer": "^6.10.0",
+    "path": "^0.12.7",
+    "pdfkit": "^0.16.0"
   }
 }

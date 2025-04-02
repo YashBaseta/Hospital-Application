@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bedSchema = new mongoose.Schema({
     number: String,
     department: String,
-    status: String,
+    date: String,
     type: String,
     floor: String
 });

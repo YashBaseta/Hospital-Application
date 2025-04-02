@@ -47,6 +47,37 @@ exports.deleteBill = async (req, res) => {
     }
 };
 
+exports.updateStatus = async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+  
+    try {
+      const updatedAppointment = await Appointment.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
+      );
+  
+      if (!updatedAppointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+  
+      res.json(updatedAppointment);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating appointment" });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
 // Record a payment for a bill
 exports.recordPayment = async (req, res) => {
     try {

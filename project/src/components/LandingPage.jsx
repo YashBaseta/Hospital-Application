@@ -141,7 +141,7 @@ function LandingPage() {
           <h1>City Hospital</h1>
         </div>
         <div className="nav-links">
-          {/* <Link to="/login" className="nav-link">Login</Link> */}
+          <Link to="/about" className="nav-link">About Us</Link>
          
         </div>
       </nav>

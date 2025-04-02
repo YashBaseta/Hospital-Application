@@ -362,7 +362,7 @@ function Appointments() {
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="all">All Appointments</option>
           <option value="today">Today's Appointments</option>
-          <option value="Scheduled">Scheduled</option>
+          
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
 

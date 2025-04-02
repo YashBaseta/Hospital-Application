@@ -1,10 +1,14 @@
-const mongoose = require('mongoose');
-const staffSchema = new mongoose.Schema({
-    name: String,
-    role: String,
-    department: String,
-    contact: String,
-    email: String,
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+
+const StaffSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  role: { type: String, required: true },
+  department: { type: String, required: true },
+  contact: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
 });
-const Staff = mongoose.model('Staff', staffSchema);
-module.exports = Staff;
+
+
+module.exports = mongoose.model("Staff", StaffSchema);

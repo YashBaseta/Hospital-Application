@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
-// import Landing from '../src/components/LandingPage.jsx'
+
 import './index.css'
 
 

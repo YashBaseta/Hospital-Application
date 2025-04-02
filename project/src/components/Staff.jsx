@@ -12,6 +12,7 @@ function Staff() {
     department: '',
     contact: '',
     email: '',
+    password:""
 
   });
 
@@ -44,8 +45,25 @@ useEffect(() => {
     });
   };
 
+
+  const generateRandomPassword = (length = 8) => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  };
+
+
+
+
+
+
+
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const password = generateRandomPassword(); // Generate a random password
+    const newFormData = { ...formData, password }; // Add password to form data
+
 try{
       if (isEditing) {
         await axios.put(`http://localhost:5000/staff/${editId}`, formData);
@@ -55,7 +73,7 @@ try{
       setIsEditing(false);
       setEditId(null);
     } else {
-      const res = await axios.post(`http://localhost:5000/staff`,formData)
+      const res = await axios.post(`http://localhost:5000/staff`,newFormData)
       setStaffMembers([...staffMembers, res.data ]);
     }
     setFormData({ name: '', role: '', department: '', contact: '', email: '' });

@@ -51,11 +51,14 @@ const fetchPatient = async () => {
 const fetchBed = async () => {
   try {
     const response = await axios.get('http://localhost:5000/beds');
-    setBedCount(response.data.length);
+    const totalBeds = 25;
+    const availableBeds = totalBeds - response.data.length;
+    setBedCount(availableBeds);
   } catch (error) {
-    console.error('Error fetching Staff:', error);
+    console.error('Error fetching Beds:', error);
   }
 };
+
 
 // const fetchBill = async () => {
 //   try {
@@ -115,8 +118,8 @@ const fetchBed = async () => {
         <div className="stat-card"  onClick={() => navigate("/patients")}>
           <div className="stat-icon blue" >👥</div>
           <div className="stat-info">
-            <h3 >{patientCount}</h3>
-            <p>Total Patients</p>
+            <h3 style={{fontSize:""}} >{patientCount}</h3>
+            <p style={{fontSize:"20px"}}>Total Patients</p>
           </div>
         </div>
 
@@ -124,7 +127,7 @@ const fetchBed = async () => {
           <div className="stat-icon green">📅</div>
           <div className="stat-info">
             <h3>{appointmentCount}</h3>
-            <p>Today's Appointments</p>
+            <p style={{fontSize:"20px"}}>Today's Appointments</p>
           </div>
         </div>
 
@@ -132,7 +135,7 @@ const fetchBed = async () => {
           <div className="stat-icon purple">🛏️</div>
           <div className="stat-info">
             <h3>{bedCount}</h3>
-            <p>Available Beds</p>
+            <p style={{fontSize:"20px"}}>Available Beds</p>
           </div>
         </div>
 
@@ -140,7 +143,7 @@ const fetchBed = async () => {
           <div className="stat-icon yellow">💰</div>
           <div className="stat-info">
             <h3>{billCount}</h3>
-            <p>Pending Bills</p>
+            <p style={{fontSize:"20px"}}>Pending Bills</p>
           </div>
         </div>
       </div>

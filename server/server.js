@@ -32,6 +32,7 @@ app.use('/supplies', SuppliesRoutes);
 app.use('/bill', billRoutes);
 app.use('/api/auth', LoginRoutes);
 
+
 // Start Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 

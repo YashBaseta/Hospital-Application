@@ -303,10 +303,12 @@ body {
 }
 
 .status-select {
-  padding: 6px;
-  border: 1px solid #e0e0e0;
+  padding: 6px 1px;
   border-radius: 6px;
-  background-color: white;
+  border: 2px solid #e2e8f0;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .form-summary {

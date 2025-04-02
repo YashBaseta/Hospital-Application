@@ -12,6 +12,13 @@ const getBeds = async (req,res) => {
     
     const addBed = async (req,res) => {
         try {
+
+          const { department,type,floor  } = req.body;
+          const existingBed = await Bed.findOne({ department,type,floor });
+    
+          if (existingBed) {
+              return res.status(400).json({ msg: "The selected bed is unavailable."});
+          }
             const newBed = new Bed(req.body);
             const savedBed = await newBed.save();
             res.status(201).json(savedBed);

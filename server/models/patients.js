@@ -12,8 +12,8 @@ const patientSchema = new mongoose.Schema({
     medicalHistory: { type: String, default: '' },
     emergencyContact: { type: String, required: true },
     insuranceInfo: { type: String, default: '' },
-    lastVisit:Date,
-    nextAppointment: Date,
+    lastVisit:String,
+    nextAppointment: String,
 })
 
 const Patients = mongoose.model("Patients",patientSchema);

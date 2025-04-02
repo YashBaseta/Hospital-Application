@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Search, FileText, DollarSign, Calendar, User, Shield, CreditCard, AlertCircle, IndianRupee } from 'lucide-react';
 import jsPDF from 'jspdf';
 import emailjs from 'emailjs-com';
@@ -12,6 +12,7 @@ function Billing() {
    const [searchTerm, setSearchTerm] = useState('');
    const [filterStatus, setFilterStatus] = useState('all');
    const [formData, setFormData] = useState({
+    id:"",
      patient: '',
      appointmentDate: '',
      dueDate: '',
@@ -26,6 +27,31 @@ function Billing() {
      total:""
    });
  
+
+
+ // Fetch Doctor
+ useEffect(() => {
+  fetchBills();
+}, []);
+
+const fetchBills = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/bill');
+    setBills(response.data);
+ 
+  
+  } catch (error) {
+    console.error('Error fetching Bills:', error);
+  }
+};
+
+
+
+
+
+
+
+
    const stats = {
      totalBills: bills.length,
      pendingAmount: bills.reduce((sum, bill) => sum + (bill.status === 'pending' ? parseFloat(bill.total) : 0), 0),
@@ -63,50 +89,65 @@ function Billing() {
    };
  
    const calculateTotal = () => {
-     const appointmentCost = parseFloat(formData.appointmentCost) || 0;
-     const additionalTotal = formData.additionalCharges.reduce((sum, charge) => 
-       sum + (parseFloat(charge.amount) || 0), 0
-     );
-     const total = appointmentCost + additionalTotal;
-     const coverage = parseFloat(formData.coverageAmount) || 0;
-     return Math.max(0, total - coverage).toFixed(2);
-   };
+    const appointmentCost = parseFloat(formData?.appointmentCost) || 0;
+    const additionalTotal = (formData?.additionalCharges || []).reduce(
+      (sum, charge) => sum + (parseFloat(charge?.amount) || 0),
+      0
+    );
+    const coverage = parseFloat(formData?.coverageAmount) || 0;
+  
+    const total = appointmentCost + additionalTotal - coverage;
+    return total > 0 ? total.toFixed(2) : null; // Return null if total is negative
+  };
  
    
  
  
- 
- const handleSubmit = async (e) => {
-   e.preventDefault();
-   const res = await axios.post(`http://localhost:5000/bill`,formData)
-   
-   const newBill = {
-    data:res.data,
-     id: Date.now(),
-     ...formData,
-     total: calculateTotal(),
-     status: 'complete',
-     createdAt: new Date().toISOString()
-   };
-   setBills(prev => [...prev, newBill]);
-   
-   generatePDF(newBill);
-   
-   setFormData({
-     patient: '',
-     appointmentDate: '',
-     dueDate: '',
-     appointmentCost: '',
-     insuranceProvider: '',
-     policyNumber: '',
-     coverageAmount: '',
-     paymentMethod: '',
-     additionalCharges: [],
-     notes: '',
-     status: 'pending',
-     total:calculateTotal()
-   });
- };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    // Ensure total is calculated before resetting formData
+    const totalAmount = calculateTotal();
+    console.log("Calculated Total:", totalAmount);
+  
+    // Include total in the request payload
+    const updatedFormData = { 
+      ...formData, 
+      total: totalAmount 
+    };
+  
+    const res = await axios.post(`http://localhost:5000/bill`, updatedFormData);
+  
+    const newBill = {
+      data: res.data,
+      id: Date.now(),
+      ...updatedFormData, // Now this contains the correct total
+      status: 'complete',
+      createdAt: new Date().toISOString()
+    };
+  
+    setBills(prev => [...prev, newBill]);
+  
+    generatePDF(newBill);
+  
+    // Reset formData AFTER setting total
+    setFormData({
+      id:"",
+      patient: '',
+      appointmentDate: '',
+      dueDate: '',
+      appointmentCost: '',
+      insuranceProvider: '',
+      policyNumber: '',
+      coverageAmount: '',
+      paymentMethod: '',
+      additionalCharges: [],
+      notes: '',
+      status: 'pending',
+      total: null // Reset to null after submission
+    });
+  };
+  
  
  const generatePDF = (bill) => {
    const doc = new jsPDF();
@@ -193,7 +234,7 @@ function Billing() {
    doc.setTextColor(100);
    doc.text("Thank you for choosing our hospital. Get well soon!", 20, yOffset + 20);
  
-   doc.save(`Medical_Invoice_${bill.patient}.pdf`);
+  //  doc.save(`Medical_Invoice_${bill.patient}.pdf`);
    
    sendEmail(bill, doc);
  };
@@ -201,7 +242,7 @@ function Billing() {
  const sendEmail = (bill, doc) => {
    
    const emailData = {
-     to_email: "yashbaseta05@gmail.com", // Replace with actual email
+     to_email: "yash.baseta05@gmail.com", // Replace with actual email
      from_name: "Hospital Billing",
      subject: `Invoice #${bill.id}`,
      message: `Dear ${bill.patient}, please find your invoice attached.
@@ -220,7 +261,7 @@ function Billing() {
      'PYsp2rge6JYGQODO2'
    )
    .then(response => {
-     alert("Invoice sent successfully!");
+     alert(`Invoice sent successfully! `);
    })
    .catch(error => {
      console.error("Email send error: ", error);
@@ -241,29 +282,45 @@ function Billing() {
  
  
  
+ const handleStatusChange = async (id, newStatus) => {
+  console.log("Updating status for ID:", id, "New Status:", newStatus); // Debugging log
+
+  if (!id || !newStatus) {
+    console.error("Invalid ID or Status:", id, newStatus);
+    return;
+  }
+
+  try {
+    // Send update request to backend
+    const res = await axios.put(`http://localhost:5000/bill/${id}`, { status: newStatus });
+
+    console.log("Server Response:", res.data); // Debug response
+
+    // Update state in frontend
+    setBills(prev =>
+      prev.map(bill =>
+        bill._id === id ? { ...bill, status: newStatus } : bill
+      )
+    );
+  } catch (error) {
+    console.error("Error updating status:", error);
+  }
+};
+
  
-   const handleStatusChange = (billId, newStatus) => {
-     setBills(prev => prev.map(bill => {
-       if (bill.id === billId) {
-         return {
-           ...bill,
-           status: newStatus,
-           paidDate: newStatus === 'paid' ? new Date().toISOString() : null
-         };
-       }
-       return bill;
-     }));
-   };
- 
-   const filteredBills = bills
-     .filter(bill => {
-       const matchesSearch = bill.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           bill.id.toString().includes(searchTerm);
-       const matchesStatus = filterStatus === 'all' || bill.status === filterStatus;
-       return matchesSearch && matchesStatus;
-     })
-     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
- 
+const filteredBills = bills
+.filter(bill => {
+  const patientName = bill.patient ? bill.patient.toLowerCase() : '';
+  const billId = bill.id ? bill.id.toString() : '';
+  const search = searchTerm.trim().toLowerCase();
+
+  const matchesSearch = patientName.includes(search) || billId.includes(search);
+  const matchesStatus = filterStatus === 'all' || bill.status === filterStatus;
+
+  return matchesSearch && matchesStatus;
+})
+.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
    return (
      <div className="container">
        <div className="header">
@@ -376,7 +433,7 @@ function Billing() {
             className="form-control"
             name="email"
             value={formData.email}
-          onChange={e => setFormData(prev => ({ ...prev, patient: e.target.value }))}
+          onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
             placeholder="Patient's email"
             required
           />
@@ -415,7 +472,7 @@ function Billing() {
                <div className="form-group">
                  <label>
                  <IndianRupee size={16} />
-                   Appointment Cost ($)
+                   Appointment Cost
                  </label>
                  <input
                    type="number"
@@ -464,7 +521,7 @@ function Billing() {
                <div className="form-group">
                  <label>
                    <IndianRupee size={16} />
-                   Coverage Amount ($)
+                   Coverage Amount 
                  </label>
                  <input
                  placeholder="Coverage Amount"
@@ -596,16 +653,16 @@ function Billing() {
                      <td>{bill.patient}</td>
                      <td>{new Date(bill.appointmentDate).toLocaleDateString()}</td>
                      <td>{new Date(bill.dueDate).toLocaleDateString()}</td>
-                     <td>${bill.total}</td>
-                     <td>${bill.coverageAmount || '0.00'}</td>
+                     <td>{bill.total}</td>
+                     <td>{bill.coverageAmount || '0.00'}</td>
                     
                      <td>
                        <select
                          value={bill.status}
-                         onChange={(e) => handleStatusChange(bill.id, e.target.value)}
+                         onChange={(e) => handleStatusChange(bill._id, e.target.value)}
                          className="status-select"
                        >
-                         <option value="pending">Pending</option>
+                         <option st value="pending">Pending</option>
                          <option value="paid">Paid</option>
                          <option value="overdue">Overdue</option>
                        </select>

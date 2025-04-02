@@ -95,8 +95,9 @@ function Patients() {
     if (filterCriteria === 'all') return matchesSearch;
     if (filterCriteria === 'hasAppointment') return matchesSearch && patient.nextAppointment;
     if (filterCriteria === 'recentVisit') {
-      const thirtyDaysAgo = new Date().toISOString().split('T')[0];
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgo = new Date(); // Create a Date object
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); // Subtract 30 days
+      
       return matchesSearch && new Date(patient.lastVisit) >= thirtyDaysAgo;
     }
     return matchesSearch;

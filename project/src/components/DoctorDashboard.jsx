@@ -1,63 +1,58 @@
 import React, { useEffect, useState } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import '../styles/DoctorDashboard.css';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 
 function DoctorDashboard() {
   
-  const [getEmail, setEmail] = useState(null);
-  const [staffMembers, setStaffMembers] = useState([]);
+  // const [getEmail, setEmail] = useState(null);
+  const [appointments, setAppointments] = useState([]);
   const [filteredStaff, setFilteredStaff] = useState([]);
 
-  // Fetch Email
-  useEffect(() => {
-    fetchEmail();
-  }, []);
-
-  const fetchEmail = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/auth/user");
-      console.log("Fetched Email:", response.data); // Debugging
-      setEmail(response.data.email); // Ensure email is extracted
-    } catch (error) {
-      console.error("Error fetching email:", error);
-    }
-  };
+  
 
   // Fetch Staff
   useEffect(() => {
-    fetchStaff();
+    fetchAppointments();
+    fetchPatients();
+    fetchPatientCount()
   }, []);
 
-  const fetchStaff = async () => {
+  const fetchAppointments = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/staff");
-      console.log("Fetched Staff:", response.data); // Debugging
-      setStaffMembers(response.data);
+      const response = await axios.get("http://localhost:5000/appointments");
+      console.log("Fetched appointments:", response.data); // Debugging
+      setAppointments(response.data);
     } catch (error) {
-      console.error("Error fetching staff:", error);
+      console.error("Error fetching appointments:", error);
     }
   };
 
-  // Filter Staff Members based on Email Match
-  useEffect(() => {
-    if (getEmail && staffMembers.length > 0) {
-      console.log("Email to match:", getEmail);
-      console.log("Staff Emails:", staffMembers.map((staff) => staff.email));
 
-      const matchedStaff = staffMembers.filter(
-        (staff) => staff.email.toLowerCase() === getEmail.toLowerCase()
-      );
-
-      console.log("Matched Staff:", matchedStaff);
-      setFilteredStaff(matchedStaff);
+  const [patients, setPatients] = useState([]);
+  const fetchPatients = async () => {
+    try {
+      const { data } = await axios.get('http://localhost:5000/patients');
+      setPatients(data);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
     }
-  }, [getEmail, staffMembers]);
+  };
 
 
 
+  const [ patientCount,setPatientCount] = useState(0);
+  
 
+  const fetchPatientCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/patients');
+      setPatientCount(response.data.length);
+    } catch (error) {
+      console.error('Error fetching Staff:', error);
+    }
+  };
 
 
 
@@ -78,63 +73,33 @@ function DoctorDashboard() {
     about: 'Experienced cardiologist specializing in interventional cardiology and heart failure management.'
   };
 
-  // Mock appointments data
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      patientName: 'John Doe',
-      date: '2024-03-26',
-      time: '09:00',
-      type: 'Consultation',
-      status: 'scheduled',
-      symptoms: 'Chest pain, shortness of breath',
-      history: 'Hypertension'
-    },
-    {
-      id: 2,
-      patientName: 'Jane Smith',
-      date: '2024-03-22',
-      time: '10:00',
-      type: 'Follow-up',
-      status: 'scheduled',
-      symptoms: 'Regular checkup',
-      history: 'Post surgery follow-up'
-    }
-  ]);
+  
+ 
 
-  // Mock patients data
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      age: 45,
-      gender: 'Male',
-      contact: '+1 234 567 8901',
-      lastVisit: '2024-03-15',
-      condition: 'Hypertension',
-      nextAppointment: '2024-03-22'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      age: 38,
-      gender: 'Female',
-      contact: '+1 234 567 8902',
-      lastVisit: '2024-03-10',
-      condition: 'Post-surgery recovery',
-      nextAppointment: '2024-03-22'
-    }
-  ]);
+
+
+
+
   const [isOpen, setIsOpen] = useState(false);
   const [note, setNote] = useState("");
   const [activeTab, setActiveTab] = useState('dashboard');
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleStatusChange = (appointmentId, newStatus) => {
-    setAppointments(appointments.map(appointment =>
-      appointment.id === appointmentId ? { ...appointment, status: newStatus } : appointment
-    ));
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      // Send update request to backend
+      await axios.put(`http://localhost:5000/appointments/${id}`, { status: newStatus });
+
+      // Update state in frontend
+      setAppointments(prevAppointments =>
+        prevAppointments.map(appt =>
+          appt._id === id ? { ...appt, status: newStatus } : appt
+        )
+      );
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   const filteredAppointments = appointments.filter(appointment => {
@@ -149,7 +114,7 @@ function DoctorDashboard() {
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.contact.includes(searchTerm)
   );
-
+  const today = format(new Date(), 'yyyy-MM-dd');
   const stats = {
     todayAppointments: appointments.filter(app => app.date === format(new Date(), 'yyyy-MM-dd')).length,
     totalPatients: patients.length,
@@ -158,6 +123,11 @@ function DoctorDashboard() {
     ).length,
     completedAppointments: appointments.filter(app => app.status === 'completed').length
   };
+
+  const todayAppointmentsCount = filteredAppointments.filter(app => 
+    format((app.date), 'yyyy-MM-dd') === today
+  ).length;
+  
 
   return (
   
@@ -175,11 +145,11 @@ function DoctorDashboard() {
         </div>
         <div className="quick-stats">
           <div className="stat-card">
-            <span className="stat-value">{stats.todayAppointments}</span>
+            <span className="stat-value">{todayAppointmentsCount}</span>
             <span className="stat-label">Today's Appointments</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">{stats.totalPatients}</span>
+            <span className="stat-value">{patientCount}</span>
             <span className="stat-label">Total Patients</span>
           </div>
           <div className="stat-card">
@@ -220,22 +190,24 @@ function DoctorDashboard() {
             <h2>Today's Schedule</h2>
           </div>
           <div className="appointments-list">
-            {filteredAppointments
-              // .filter(app => app.date === format(new Date(), 'yyyy-MM-dd'))
-              .map(appointment => (
-                <div key={appointment.id} className="appointment-card">
-                  <div className="appointment-header">
-                    <h3>{appointment.patientName}</h3>
-                    <select
-                      value={appointment.status}
-                      onChange={(e) => handleStatusChange(appointment.id, e.target.value)}
-                      className={`status-select ${appointment.status}`}
-                    >
-                      <option value="scheduled">Scheduled</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
+            
+{filteredAppointments
+  .filter(app => format((app.date), 'yyyy-MM-dd') === today)
+  .map(appointment => (
+    <div key={appointment.id} className="appointment-card">
+      <div className="appointment-header">
+        <h3>{appointment.patient_name}</h3>
+        <select
+          value={appointment.status}
+          onChange={(e) => handleStatusChange(appointment._id, e.target.value)}
+          className={`status-select ${appointment.status}`}
+        >
+          <option value="scheduled">Scheduled</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    
                   <div className="appointment-details">
                     <div className="detail-item">
                       <span className="icon">⏰</span>
@@ -300,7 +272,7 @@ function DoctorDashboard() {
             >
               <option value="all">All Appointments</option>
               <option value="today">Today's Appointments</option>
-              <option value="scheduled">Scheduled</option>
+            
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
@@ -310,10 +282,10 @@ function DoctorDashboard() {
             {filteredAppointments.map(appointment => (
               <div key={appointment.id} className="appointment-card">
                 <div className="appointment-header">
-                  <h3>{appointment.patientName}</h3>
+                  <h3>{appointment.patient_name}</h3>
                   <select
                     value={appointment.status}
-                    onChange={(e) => handleStatusChange(appointment.id, e.target.value)}
+                    onChange={(e) => handleStatusChange(appointment._id, e.target.value)}
                     className={`status-select ${appointment.status}`}
                   >
                     <option value="scheduled">Scheduled</option>
@@ -367,7 +339,7 @@ function DoctorDashboard() {
                   <th>Gender</th>
                   <th>Contact</th>
                   <th>Last Visit</th>
-                  <th>Condition</th>
+                  
                   <th>Next Appointment</th>
                 </tr>
               </thead>
@@ -379,7 +351,7 @@ function DoctorDashboard() {
                     <td>{patient.gender}</td>
                     <td>{patient.contact}</td>
                     <td>{patient.lastVisit}</td>
-                    <td>{patient.condition}</td>
+                   
                     <td>{patient.nextAppointment}</td>
                   </tr>
                 ))}

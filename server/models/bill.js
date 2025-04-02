@@ -12,7 +12,6 @@ const BillSchema = new mongoose.Schema(
     coverageAmount: Number,
     paymentMethod: String,
     notes: String,
-    
     total: Number,
     status: { type: String },
     additionalCharges: [
